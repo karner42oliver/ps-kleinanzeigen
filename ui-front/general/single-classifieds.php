@@ -10,6 +10,7 @@
 
 global $post, $wp_query;
 $options = $this->get_options( 'general' );
+$frontend_options = $this->get_options( 'frontend' );
 $field_image = (empty($options['field_image_def'])) ? $this->plugin_url . 'ui-front/general/images/blank.gif' : $options['field_image_def'];
 
 $duration = get_post_meta( $post->ID, '_cf_duration', true );
@@ -21,6 +22,13 @@ if ( ! is_array( $gallery_ids ) ) {
 }
 $featured_image_url = has_post_thumbnail() ? wp_get_attachment_image_url( get_post_thumbnail_id( $post->ID ), 'large' ) : '';
 $is_favorite = method_exists( $this, 'is_favorite_post' ) ? $this->is_favorite_post( $post->ID ) : false;
+$author_id = (int) $post->post_author;
+$author_display_name = get_the_author_meta( 'display_name', $author_id );
+$author_registered_raw = get_the_author_meta( 'user_registered', $author_id );
+$author_registered = ! empty( $author_registered_raw ) ? date_i18n( get_option( 'date_format' ), strtotime( $author_registered_raw ) ) : '';
+$author_active_ads = count_user_posts( $author_id, 'classifieds', true );
+$region_terms = get_the_terms( $post->ID, 'kleinanzeigen-region' );
+$region_name = ( ! is_wp_error( $region_terms ) && ! empty( $region_terms ) ) ? implode( ', ', wp_list_pluck( $region_terms, 'name' ) ) : '';
 
 /**
 * $content is already filled with the database html.
@@ -149,6 +157,40 @@ $is_favorite = method_exists( $this, 'is_favorite_post' ) ? $this->is_favorite_p
 		</div>
 	</div>
 	<div class="clear"></div>
+
+	<?php
+	$trust_block_content = '';
+	if ( isset( $frontend_options['trust_block_content'] ) && '' !== trim( $frontend_options['trust_block_content'] ) ) {
+		$trust_block_content = trim( $frontend_options['trust_block_content'] );
+	} elseif ( isset( $options['trust_block_content'] ) ) {
+		$trust_block_content = trim( $options['trust_block_content'] );
+	}
+	?>
+	<div class="cf-trust-layout">
+		<?php if ( '' !== $trust_block_content || '' !== $region_name ) : ?>
+		<div class="cf-trust-card">
+			<?php if ( '' !== $trust_block_content ) : ?>
+			<div class="cf-trust-content"><?php echo wp_kses_post( wpautop( $trust_block_content ) ); ?></div>
+			<?php endif; ?>
+			<?php if ( '' !== $region_name ) : ?>
+			<p class="cf-trust-location"><strong><?php _e( 'Standort:', $this->text_domain ); ?></strong> <?php echo esc_html( $region_name ); ?></p>
+			<?php endif; ?>
+		</div>
+		<?php endif; ?>
+		<div class="cf-seller-card">
+			<h3><?php _e( 'Verkäuferprofil', $this->text_domain ); ?></h3>
+			<p class="cf-seller-name"><?php echo esc_html( $author_display_name ); ?></p>
+			<div class="cf-seller-meta">
+				<span class="cf-meta-chip"><?php echo esc_html( sprintf( _n( '%d aktive Anzeige', '%d aktive Anzeigen', (int) $author_active_ads, $this->text_domain ), (int) $author_active_ads ) ); ?></span>
+				<?php if ( '' !== $author_registered ) : ?>
+					<span class="cf-meta-chip"><?php _e( 'Mitglied seit:', $this->text_domain ); ?> <?php echo esc_html( $author_registered ); ?></span>
+				<?php endif; ?>
+			</div>
+			<p class="cf-seller-actions">
+				<a class="button cf-card-secondary" href="<?php echo esc_url( get_author_posts_url( $author_id ) ); ?>"><?php _e( 'Alle Anzeigen ansehen', $this->text_domain ); ?></a>
+			</p>
+		</div>
+	</div>
 
 	<?php if( empty( $options['disable_contact_form'] ) ): ?>
 	<form method="post" action="#" class="contact-user-btn action-form" id="action-form">

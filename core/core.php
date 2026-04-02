@@ -1032,6 +1032,12 @@ if ( ! class_exists( 'Classifieds_Core' ) ):
 		 *
 		 */
 		function on_print_scripts() {
+			$frontend_options = $this->get_options( 'frontend' );
+			$archive_auto_restore = 1;
+			if ( isset( $frontend_options['archive_auto_restore'] ) ) {
+				$archive_auto_restore = (int) $frontend_options['archive_auto_restore'];
+			}
+
 			echo '<script type="text/javascript">';
 			echo "\nvar\n";
 			echo "cf_classifieds = '" . esc_attr( get_permalink( $this->classifieds_page_id ) ) . "';\n";
@@ -1045,6 +1051,7 @@ if ( ! class_exists( 'Classifieds_Core' ) ):
 				array(
 					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'cf_frontend_actions' ),
+					'autoRestoreDefault' => 1 === $archive_auto_restore,
 					'i18n'     => array(
 						'favorite'        => __( 'Merken', $this->text_domain ),
 						'favorited'       => __( 'Gemerkt', $this->text_domain ),

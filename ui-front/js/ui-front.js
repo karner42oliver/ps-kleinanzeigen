@@ -8,6 +8,8 @@ jQuery(document).ready(function($) {
 	var frontendConfig = window.cfFrontend || { ajaxUrl: '', nonce: '', i18n: {} };
 	var lastQuickViewTrigger = null;
 	var savedFiltersKey = 'cfSavedFilters';
+	var lastUsedFilterKey = 'cfLastUsedFilter';
+	var autoRestoreEnabledKey = 'cfFilterAutoRestoreEnabled';
 
 	function getSavedFilters() {
 		try {
@@ -20,6 +22,46 @@ jQuery(document).ready(function($) {
 
 	function setSavedFilters(filters) {
 		window.localStorage.setItem(savedFiltersKey, JSON.stringify(filters));
+	}
+
+	function getLastUsedFilter() {
+		try {
+			var parsed = JSON.parse(window.localStorage.getItem(lastUsedFilterKey) || 'null');
+			return parsed && typeof parsed === 'object' ? parsed : null;
+		} catch (e) {
+			return null;
+		}
+	}
+
+	function setLastUsedFilter(payload) {
+		if (!payload) {
+			return;
+		}
+
+		window.localStorage.setItem(lastUsedFilterKey, JSON.stringify(payload));
+	}
+
+	function clearLastUsedFilter() {
+		window.localStorage.removeItem(lastUsedFilterKey);
+	}
+
+	function isAutoRestoreEnabled() {
+		var stored = window.localStorage.getItem(autoRestoreEnabledKey);
+		var configDefault = frontendConfig.autoRestoreDefault === false ? false : true;
+		if (stored === null) {
+			return configDefault;
+		}
+
+		return stored === '1';
+	}
+
+	function setAutoRestoreEnabled(enabled) {
+		window.localStorage.setItem(autoRestoreEnabledKey, enabled ? '1' : '0');
+	}
+
+	function hasActiveFilterInUrl() {
+		var params = new URLSearchParams(window.location.search || '');
+		return params.has('q') || params.has('cat') || params.has('region') || params.has('min_price') || params.has('max_price') || params.has('sort');
 	}
 
 	function getCurrentFilterPayload() {
@@ -262,6 +304,8 @@ jQuery(document).ready(function($) {
 			return;
 		}
 
+		setLastUsedFilter(payload);
+
 		var name = window.prompt(frontendConfig.i18n.saveFilterPrompt || 'Wie willst du diesen Filter nennen?');
 		if (name === null) {
 			return;
@@ -309,6 +353,7 @@ jQuery(document).ready(function($) {
 		}
 
 		applyFilterPayload(match.payload);
+		setLastUsedFilter(match.payload);
 		$('.cf-filter-bar').trigger('submit');
 	});
 
@@ -336,7 +381,35 @@ jQuery(document).ready(function($) {
 		window.alert(frontendConfig.i18n.deleteFilterDone || 'Filter wurde geloescht.');
 	});
 
+	$(document).on('submit', '.cf-filter-bar', function() {
+		setLastUsedFilter(getCurrentFilterPayload());
+	});
+
+	$(document).on('click', '.cf-filter-reset', function() {
+		clearLastUsedFilter();
+	});
+
+	$(document).on('change', '.cf-auto-restore-input', function() {
+		setAutoRestoreEnabled($(this).is(':checked'));
+	});
+
 	renderSavedFilterOptions();
+
+	var $filterBar = $('.cf-filter-bar');
+	if ($filterBar.length) {
+		var autoRestoreEnabled = isAutoRestoreEnabled();
+		$('.cf-auto-restore-input').prop('checked', autoRestoreEnabled);
+
+		if (hasActiveFilterInUrl()) {
+			setLastUsedFilter(getCurrentFilterPayload());
+		} else if (autoRestoreEnabled) {
+			var lastUsed = getLastUsedFilter();
+			if (lastUsed && (lastUsed.q || lastUsed.cat || lastUsed.region || lastUsed.min_price || lastUsed.max_price || (lastUsed.sort && lastUsed.sort !== 'newest'))) {
+				applyFilterPayload(lastUsed);
+				$filterBar.trigger('submit');
+			}
+		}
+	}
 
 	if (window.location.search.indexOf('cf_contact=1') !== -1 && $('#confirm-form[data-open-on-load="1"]').length) {
 		classifieds.toggle_contact_form();

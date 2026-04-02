@@ -16,6 +16,9 @@
 global $bp, $wp_query, $paged;
 
 $options = $this->get_options( 'general' );
+$options_frontend = $this->get_options( 'frontend' );
+$user_intro = isset( $options_frontend['user_intro'] ) ? trim( $options_frontend['user_intro'] ) : '';
+$favorite_ids = method_exists( $this, 'get_favorite_ids' ) ? $this->get_favorite_ids() : array();
 
 $cf_path = $bp->displayed_user->domain . $this->classifieds_page_slug .'/' . $this->my_classifieds_page_slug;
 
@@ -33,6 +36,12 @@ $query_args = array(
 if ( in_array( 'saved',  $bp->action_variables ) ) {
 	$query_args['post_status'] = array('draft', 'pending');
 	$sub = 'saved';
+}
+elseif ( in_array( 'favorites',  $bp->action_variables ) ) {
+	$query_args['post_status'] = 'publish';
+	unset( $query_args['author'] );
+	$query_args['post__in'] = ! empty( $favorite_ids ) ? array_map( 'absint', $favorite_ids ) : array( 0 );
+	$sub = 'favorites';
 }
 elseif ( in_array( 'ended',  $bp->action_variables ) ) {
 	$query_args['post_status'] = 'private';
@@ -54,6 +63,9 @@ query_posts($query_args);
 <?php endif; ?>
 
 <div class="profile">
+	<?php if ( '' !== $user_intro ) : ?>
+	<div class="cf-user-intro"><?php echo wp_kses_post( wpautop( $user_intro ) ); ?></div>
+	<?php endif; ?>
 
 	<?php if ( bp_is_my_profile() ): ?>
 
@@ -68,6 +80,7 @@ query_posts($query_args);
 
 	<ul class="cf_tabs">
 		<li class="<?php if ( in_array( 'active', $bp->action_variables ) || empty( $bp->action_variables ) ) echo 'cf_active current'; ?>"><a href="<?php echo $cf_path . '/active/'; ?>"><?php _e( 'Aktive Anzeigen', $this->text_domain ); ?></a></li>
+		<li class="<?php if ( in_array( 'favorites',  $bp->action_variables ) ) echo 'cf_active current'; ?>"><a href="<?php echo $cf_path . '/favorites/'; ?>"><?php _e( 'Gemerkte Anzeigen', $this->text_domain ); ?></a></li>
 		<li class="<?php if ( in_array( 'saved',  $bp->action_variables ) ) echo 'cf_active current'; ?>"><a href="<?php echo $cf_path . '/saved/'; ?>"><?php _e( 'Gespeicherte Anzeigen', $this->text_domain ); ?></a></li>
 		<li class="<?php if ( in_array( 'ended',  $bp->action_variables ) ) echo 'cf_active current'; ?>"><a href="<?php echo $cf_path . '/ended/'; ?>"><?php _e( 'Beendete Anzeigen', $this->text_domain ); ?></a></li>
 	</ul>
@@ -108,6 +121,7 @@ query_posts($query_args);
 		<?php /* Display navigation to next/previous pages when applicable */ ?>
 		<?php echo $this->pagination( $this->pagination_bottom ); ?>
 		<br clear="both" />
+		<div class="cf-listing-grid cf-my-listing-grid">
 		<?php if ( have_posts() ) while ( have_posts() ) : the_post(); ?>
 
 		<div id="post-<?php the_ID(); ?>" <?php post_class(); ?> >
@@ -160,11 +174,17 @@ query_posts($query_args);
 
 						<?php if ( isset( $sub ) && $sub == 'active' ): ?>
 						<button type="submit" name="end" value="<?php _e('Anzeige beenden', $this->text_domain ); ?>" onclick="classifieds.toggle_end('<?php the_ID(); ?>'); return false;" ><?php _e('Anzeige beenden', $this->text_domain ); ?></button>
+						<?php elseif ( isset( $sub ) && $sub == 'favorites' ): ?>
+						<a class="button" href="<?php the_permalink(); ?>"><?php _e('Anzeige ansehen', $this->text_domain ); ?></a>
+						<button type="button" class="button cf-favorite-toggle <?php echo method_exists( $this, 'is_favorite_post' ) && $this->is_favorite_post( get_the_ID() ) ? 'is-active' : ''; ?>" data-post-id="<?php the_ID(); ?>">
+							<span class="cf-favorite-label-default"><?php _e( 'Merken', $this->text_domain ); ?></span>
+							<span class="cf-favorite-label-active"><?php _e( 'Gemerkt', $this->text_domain ); ?></span>
+						</button>
 						<?php elseif ( isset( $sub ) && ( $sub == 'saved' || $sub == 'ended' ) ): ?>
 						<button type="submit" name="renew" value="<?php _e('Anzeige verlaengern', $this->text_domain ); ?>" onclick="classifieds.toggle_renew('<?php the_ID(); ?>'); return false;" ><?php _e('Anzeige verlaengern', $this->text_domain ); ?></button>
 						<?php endif; ?>
 
-						<?php if(current_user_can( 'delete_classifieds' )): ?>
+						<?php if(current_user_can( 'delete_classifieds' ) && 'favorites' !== $sub): ?>
 						<button type="submit" name="delete" value="<?php _e('Anzeige loeschen', $this->text_domain ); ?>" onclick="classifieds.toggle_delete('<?php the_ID(); ?>'); return false;" ><?php _e('Anzeige loeschen', $this->text_domain ); ?></button>
 						<?php endif; ?>
 
@@ -231,6 +251,7 @@ query_posts($query_args);
 		<div class="clear"></div>
 
 		<?php endwhile; ?>
+		</div>
 		<?php /* Display navigation to next/previous pages when applicable */ ?>
 		<?php echo $this->pagination( $this->pagination_bottom ); ?>
 	</div><!-- .cf_tab_container -->

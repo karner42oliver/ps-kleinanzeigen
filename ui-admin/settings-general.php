@@ -306,6 +306,7 @@ $default_email = __(
 				</table>
 			</div>
 		</div>
+
 		<p class="submit">
 			<?php wp_nonce_field( 'verify' ); ?>
 			<input type="hidden" name="key" value="general" />

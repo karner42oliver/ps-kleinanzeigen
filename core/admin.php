@@ -40,6 +40,7 @@ class Classifieds_Core_Admin extends Classifieds_Core {
 			/* Initiate admin menus and admin head */
 			add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
 			add_action( 'admin_init', array( &$this, 'admin_head' ) );
+			add_action( 'admin_enqueue_scripts', array( &$this, 'block_external_cdn_assets' ), 999 );
 			add_action( 'save_post',  array( &$this, 'save_expiration_date' ), 1, 1 );
 			add_action( 'restrict_manage_posts', array($this,'on_restrict_manage_posts') );
 
@@ -153,6 +154,80 @@ class Classifieds_Core_Admin extends Classifieds_Core {
 		wp_enqueue_script( 'cf-admin-scripts', $this->plugin_url . 'ui-admin/js/ui-scripts.js', array( 'jquery' ) );
 	}
 
+	function block_external_cdn_assets() {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+		if ( ! $this->is_classifieds_admin_screen( $screen ) ) {
+			return;
+		}
+
+		$this->dequeue_external_cdn_handles( wp_styles(), 'style' );
+		$this->dequeue_external_cdn_handles( wp_scripts(), 'script' );
+	}
+
+	function is_classifieds_admin_screen( $screen ) {
+		if ( empty( $screen ) ) {
+			return false;
+		}
+
+		if ( ! empty( $screen->post_type ) && 'classifieds' === $screen->post_type ) {
+			return true;
+		}
+
+		$screen_id = ! empty( $screen->id ) ? $screen->id : '';
+		$screen_base = ! empty( $screen->base ) ? $screen->base : '';
+
+		return in_array( $screen_id, array(
+			'classifieds_page_classifieds',
+			'classifieds_page_classifieds_settings',
+			'classifieds_page_classifieds_credits',
+			'classifieds_page_classifieds_tutorial',
+			'edit-classifieds',
+			'classifieds',
+		), true ) || in_array( $screen_base, array( 'post', 'edit' ), true );
+	}
+
+	function dequeue_external_cdn_handles( $dependency_manager, $type ) {
+		if ( empty( $dependency_manager ) || empty( $dependency_manager->registered ) ) {
+			return;
+		}
+
+		$cdn_hosts = array(
+			'cdnjs.cloudflare.com',
+			'cdn.jsdelivr.net',
+			'unpkg.com',
+			'ajax.googleapis.com',
+			'fonts.googleapis.com',
+			'fonts.gstatic.com',
+			'maxcdn.bootstrapcdn.com',
+			'use.fontawesome.com',
+		);
+
+		foreach ( $dependency_manager->registered as $handle => $dependency ) {
+			if ( empty( $dependency->src ) ) {
+				continue;
+			}
+
+			$src = $dependency->src;
+			if ( 0 === strpos( $src, '//' ) ) {
+				$src = ( is_ssl() ? 'https:' : 'http:' ) . $src;
+			}
+
+			$host = wp_parse_url( $src, PHP_URL_HOST );
+			if ( empty( $host ) || ! in_array( $host, $cdn_hosts, true ) ) {
+				continue;
+			}
+
+			if ( 'style' === $type ) {
+				wp_dequeue_style( $handle );
+				wp_deregister_style( $handle );
+			} else {
+				wp_dequeue_script( $handle );
+				wp_deregister_script( $handle );
+			}
+		}
+	}
+
 	/**
 	* Renders an admin section of display code.
 	*
@@ -177,6 +252,7 @@ class Classifieds_Core_Admin extends Classifieds_Core {
 	function handle_admin_requests() {
 		$valid_tabs = array(
 		'general',
+		'frontend',
 		'capabilities',
 		'payments',
 		'payment-types',
@@ -228,6 +304,21 @@ class Classifieds_Core_Admin extends Classifieds_Core {
 				}
 				if ( isset( $params['save'] ) ) {
 					check_admin_referer('verify');
+					if ( 'general' === $tab && isset( $params['trust_block_content'] ) ) {
+						$params['trust_block_content'] = wp_kses_post( $params['trust_block_content'] );
+					}
+					if ( 'frontend' === $tab ) {
+						if ( isset( $params['archive_intro'] ) ) {
+							$params['archive_intro'] = wp_kses_post( $params['archive_intro'] );
+						}
+						if ( isset( $params['user_intro'] ) ) {
+							$params['user_intro'] = wp_kses_post( $params['user_intro'] );
+						}
+						if ( isset( $params['trust_block_content'] ) ) {
+							$params['trust_block_content'] = wp_kses_post( $params['trust_block_content'] );
+						}
+						$params['archive_auto_restore'] = empty( $params['archive_auto_restore'] ) ? 0 : 1;
+					}
 					unset($params['new_role'],
 					$params['add_role'],
 					$params['delete_role'],

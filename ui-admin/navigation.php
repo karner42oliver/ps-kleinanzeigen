@@ -7,6 +7,7 @@
 	<?php if($page == 'classifieds_settings'): ?>
 
 	<a class="nav-tab <?php if ( $tab == 'general' || empty($tab))  echo 'nav-tab-active'; ?>" href="<?php echo esc_attr('admin.php?page=classifieds_settings&tab=general');?>" ><?php _e( 'Allgemein', $this->text_domain ); ?></a>
+	<a class="nav-tab <?php if ( $tab == 'frontend' ) echo 'nav-tab-active'; ?>" href="<?php echo esc_attr('admin.php?page=classifieds_settings&tab=frontend');?>" ><?php _e( 'Frontend', $this->text_domain ); ?></a>
 	<a class="nav-tab <?php if ( $tab == 'capabilities' || empty($tab))  echo 'nav-tab-active'; ?>" href="<?php echo esc_attr('admin.php?page=classifieds_settings&tab=capabilities');?>" ><?php _e( 'Rechte', $this->text_domain ); ?></a>
 	<a class="nav-tab <?php if ( $tab == 'payments' ) echo 'nav-tab-active'; ?>" href="<?php echo esc_attr('admin.php?page=classifieds_settings&tab=payments'); ?>" ><?php _e( 'Zahlungen', $this->text_domain ); ?></a>
 	<a class="nav-tab <?php if ( $tab == 'payment-types' ) echo 'nav-tab-active'; ?>" href="<?php echo esc_attr('admin.php?page=classifieds_settings&tab=payment-types'); ?>"><?php _e( 'Zahlungsarten', $this->text_domain ); ?></a>

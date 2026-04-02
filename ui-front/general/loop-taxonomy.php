@@ -21,8 +21,15 @@
 global $bp, $Classifieds_Core;
 $cf = $Classifieds_Core; //shorthand
 
+?>
+<script type="text/javascript" src="<?php echo esc_url( $cf->plugin_url . 'ui-front/js/ui-front.js' ); ?>"></script>
+<?php
+
 $cf_options = $cf->get_options( 'general' );
+$frontend_options = $cf->get_options( 'frontend' );
 $favorite_ids = method_exists( $cf, 'get_favorite_ids' ) ? $cf->get_favorite_ids() : array();
+
+$archive_intro = isset( $frontend_options['archive_intro'] ) ? trim( $frontend_options['archive_intro'] ) : '';
 
 $field_image = (empty($cf_options['field_image_def'])) ? $cf->plugin_url . 'ui-front/general/images/blank.gif' : $cf_options['field_image_def'];
 
@@ -50,6 +57,12 @@ $region_terms = get_terms(
 ?>
 
 <?php if(! is_post_type_archive('classifieds') ) the_cf_breadcrumbs(); ?>
+
+<?php if ( '' !== $archive_intro ) : ?>
+<div class="cf-archive-intro">
+	<?php echo wp_kses_post( wpautop( $archive_intro ) ); ?>
+</div>
+<?php endif; ?>
 
 <form method="get" class="cf-filter-bar" action="<?php echo esc_url( get_permalink( $cf->classifieds_page_id ) ); ?>">
 	<div class="cf-filter-grid">
@@ -102,7 +115,7 @@ $region_terms = get_terms(
 
 	<div class="cf-filter-actions">
 		<button type="submit" class="button"><?php _e( 'Filtern', CF_TEXT_DOMAIN ); ?></button>
-		<a class="button" href="<?php echo esc_url( get_permalink( $cf->classifieds_page_id ) ); ?>"><?php _e( 'Zurücksetzen', CF_TEXT_DOMAIN ); ?></a>
+		<a class="button cf-filter-reset" href="<?php echo esc_url( get_permalink( $cf->classifieds_page_id ) ); ?>"><?php _e( 'Zurücksetzen', CF_TEXT_DOMAIN ); ?></a>
 	</div>
 
 	<div class="cf-filter-tools">
@@ -112,6 +125,10 @@ $region_terms = get_terms(
 		</select>
 		<button type="button" class="button cf-apply-saved-filter"><?php _e( 'Laden', CF_TEXT_DOMAIN ); ?></button>
 		<button type="button" class="button cf-delete-saved-filter"><?php _e( 'Loeschen', CF_TEXT_DOMAIN ); ?></button>
+		<label class="cf-auto-restore-toggle" for="cf_filter_auto_restore">
+			<input type="checkbox" id="cf_filter_auto_restore" class="cf-auto-restore-input" />
+			<?php _e( 'Zuletzt genutzte Filter automatisch laden', CF_TEXT_DOMAIN ); ?>
+		</label>
 	</div>
 </form>
 
@@ -144,6 +161,7 @@ $region_terms = get_terms(
 *
 * Without further ado, the loop:
 */  ?>
+<div class="cf-listing-grid">
 <?php while ( have_posts() ) : the_post(); ?>
 
 <?php
@@ -157,70 +175,64 @@ $is_favorite   = in_array( get_the_ID(), $favorite_ids, true );
 
 	<div class="entry-content">
 		<div class="cf-ad cf-listing-card">
-
 			<div class="cf-image">
 				<?php if ( $gallery_count > 0 ) : ?>
 					<span class="cf-gallery-badge"><?php echo esc_html( sprintf( _n( '%d Bild', '%d Bilder', $gallery_count, CF_TEXT_DOMAIN ), $gallery_count ) ); ?></span>
 				<?php endif; ?>
 				<?php
 				if ( '' == get_post_meta( get_the_ID(), '_thumbnail_id', true ) ) {
-					if ( isset( $cf_options['field_image_def'] ) && '' != $cf_options['field_image_def'] )
-					echo '<img width="150" height="150" title="no image" alt="no image" class="cf-no-image wp-post-image" src="' . $field_image . '">';
+					if ( isset( $cf_options['field_image_def'] ) && '' != $cf_options['field_image_def'] ) {
+						echo '<img width="960" height="720" title="no image" alt="no image" class="cf-no-image wp-post-image cf-card-image" src="' . esc_url( $field_image ) . '">';
+					}
 				} else {
-					echo get_the_post_thumbnail( get_the_ID(), array( 200, 150 ) );
+					echo get_the_post_thumbnail(
+						get_the_ID(),
+						'medium_large',
+						array(
+							'class'    => 'wp-post-image cf-card-image',
+							'loading'  => 'lazy',
+							'decoding' => 'async',
+							'sizes'    => '(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw',
+						)
+					);
 				}
 
 				?>
 			</div>
 			<div class="cf-info">
-				<table>
-					<tr>
-						<th><?php _e( 'Titel', CF_TEXT_DOMAIN ); ?></th>
-						<td>
-							<span class="cf-title"><a href="<?php the_permalink(); ?>"><?php echo $post->post_title; ?></a></span>
-							<span class="cf-price"><?php echo $cost; ?></span>
-						</td>
-					</tr>
-					<tr>
-						<th><?php _e( 'Angeboten von', CF_TEXT_DOMAIN ); ?></th>
+				<?php
+				$cat_list    = get_the_term_list( get_the_ID(), 'kleinenanzeigen-cat', '', ', ', '' );
+				$region_list = get_the_term_list( get_the_ID(), 'kleinanzeigen-region', '', ', ', '' );
+				?>
 
-						<td>
-
-							<span class="cf-author"><?php echo the_author_posts_link(); ?></a></span>
-
-						</td>
-					</tr>
-					<tr>
-						<th><?php _e( 'Kategorien', CF_TEXT_DOMAIN ); ?></th>
-						<td><span class="cf-terms">
-							<?php $taxonomies = get_object_taxonomies( 'classifieds', 'names' ); ?>
-							<?php foreach ( $taxonomies as $taxonomy ): ?>
-							<?php echo get_the_term_list( get_the_ID(), $taxonomy, '', ', ', '' ) . ' '; ?>
-							<?php endforeach; ?>
-						</span>
-					</td>
-				</tr>
-				<tr>
-					<th><?php _e( 'Läuft ab', CF_TEXT_DOMAIN ); ?></th>
-					<td><span class="cf-expires"><?php echo $cf->get_expiration_date( get_the_ID() ); ?></span></td>
-				</tr>
-				<tr>
-					<td colspan="2"><span class="cf-excerpt"><?php wp_kses(get_the_excerpt(), cf_wp_kses_allowed_html()); ?></span></td>
-				</tr>
-			</table>
-			<div class="cf-card-footer">
-				<div class="cf-card-meta-row">
-					<?php if ( $cost ) : ?>
-						<span class="cf-card-pill"><?php _e( 'Preis', CF_TEXT_DOMAIN ); ?>: <?php echo esc_html( $cost ); ?></span>
+				<div class="cf-card-headline">
+					<h3 class="cf-title"><a href="<?php the_permalink(); ?>"><?php echo esc_html( get_the_title() ); ?></a></h3>
+					<?php if ( ! empty( $cost ) ) : ?>
+						<span class="cf-price"><?php echo esc_html( $cost ); ?></span>
 					<?php endif; ?>
-					<span class="cf-card-pill"><?php _e( 'Inserat ansehen', CF_TEXT_DOMAIN ); ?></span>
 				</div>
+
+				<div class="cf-card-meta-compact">
+					<span class="cf-card-pill"><?php _e( 'Von', CF_TEXT_DOMAIN ); ?>: <?php the_author(); ?></span>
+					<span class="cf-card-pill"><?php _e( 'Laeuft ab', CF_TEXT_DOMAIN ); ?>: <?php echo esc_html( $cf->get_expiration_date( get_the_ID() ) ); ?></span>
+					<?php if ( ! empty( $cat_list ) ) : ?>
+						<span class="cf-card-pill"><?php echo wp_kses_post( $cat_list ); ?></span>
+					<?php endif; ?>
+					<?php if ( ! empty( $region_list ) ) : ?>
+						<span class="cf-card-pill"><?php echo wp_kses_post( $region_list ); ?></span>
+					<?php endif; ?>
+				</div>
+
+				<p class="cf-excerpt"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( get_the_excerpt() ), 18, ' ...' ) ); ?></p>
+
+			<div class="cf-card-footer">
+				<div class="cf-card-meta-row"></div>
 				<div class="cf-card-actions">
 					<button type="button" class="button cf-card-secondary cf-favorite-toggle <?php echo $is_favorite ? 'is-active' : ''; ?>" data-post-id="<?php the_ID(); ?>">
 						<span class="cf-favorite-label-default"><?php _e( 'Merken', CF_TEXT_DOMAIN ); ?></span>
 						<span class="cf-favorite-label-active"><?php _e( 'Gemerkt', CF_TEXT_DOMAIN ); ?></span>
 					</button>
-					<button type="button" class="button cf-card-secondary cf-quickview-trigger" data-post-id="<?php the_ID(); ?>"><?php _e( 'Schnellansicht', CF_TEXT_DOMAIN ); ?></button>
+								<a class="button cf-card-secondary cf-quickview-trigger" href="<?php the_permalink(); ?>" data-post-id="<?php the_ID(); ?>"><?php _e( 'Schnellansicht', CF_TEXT_DOMAIN ); ?></a>
 					<a class="button cf-card-secondary cf-card-contact" href="<?php echo esc_url( add_query_arg( 'cf_contact', '1', get_permalink() ) . '#confirm-form' ); ?>"><?php _e( 'Kontakt', CF_TEXT_DOMAIN ); ?></a>
 					<a class="button cf-card-cta" href="<?php the_permalink(); ?>"><?php _e( 'Mehr Details', CF_TEXT_DOMAIN ); ?></a>
 				</div>
@@ -233,6 +245,7 @@ $is_favorite   = in_array( get_the_ID(), $favorite_ids, true );
 </div><!-- #post-## -->
 
 <?php endwhile; // End the loop. Whew. ?>
+</div>
 
 <div class="cf-modal" id="cf-quickview-modal" aria-hidden="true">
 	<div class="cf-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="cf-quickview-title">

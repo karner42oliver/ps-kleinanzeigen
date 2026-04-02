@@ -150,7 +150,7 @@ if ( $step == 'terms'): ?>
 			<td><label for="payment_method"><?php _e( 'PayPal', $this->text_domain ); ?></label></td>
 			<td>
 				<input type="radio" name="payment_method" value="paypal"/>
-				<img  src="https://www.paypal.com/en_US/i/logo/PayPal_mark_37x23.gif" border="0" alt="Acceptance Mark">
+				<span class="cf-payment-badge cf-payment-badge-paypal">PayPal</span>
 			</td>
 		</tr>
 		<?php endif; ?>
