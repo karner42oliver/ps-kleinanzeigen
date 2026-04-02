@@ -30,6 +30,11 @@ $author_active_ads = count_user_posts( $author_id, 'classifieds', true );
 $region_terms = get_the_terms( $post->ID, 'kleinanzeigen-region' );
 $region_name = ( ! is_wp_error( $region_terms ) && ! empty( $region_terms ) ) ? implode( ', ', wp_list_pluck( $region_terms, 'name' ) ) : '';
 
+$single_show_gallery = ! isset( $frontend_options['single_show_gallery'] ) || 1 === (int) $frontend_options['single_show_gallery'];
+$single_show_trust_block = ! isset( $frontend_options['single_show_trust_block'] ) || 1 === (int) $frontend_options['single_show_trust_block'];
+$single_show_seller_card = ! isset( $frontend_options['single_show_seller_card'] ) || 1 === (int) $frontend_options['single_show_seller_card'];
+$single_show_sticky_actions = ! isset( $frontend_options['single_show_sticky_actions'] ) || 1 === (int) $frontend_options['single_show_sticky_actions'];
+
 /**
 * $content is already filled with the database html.
 * This template just adds classifieds specfic code around it.
@@ -78,7 +83,7 @@ $region_name = ( ! is_wp_error( $region_terms ) && ! empty( $region_terms ) ) ? 
 			<?php echo $thumbnail; ?>
 		<?php endif; ?>
 	</div>
-	<?php if ( ! empty( $gallery_ids ) ) : ?>
+	<?php if ( $single_show_gallery && ! empty( $gallery_ids ) ) : ?>
 	<div class="cf-gallery-grid">
 		<?php foreach ( $gallery_ids as $gallery_id ) : ?>
 			<?php $gallery_image = wp_get_attachment_image_src( (int) $gallery_id, 'thumbnail' ); ?>
@@ -166,8 +171,9 @@ $region_name = ( ! is_wp_error( $region_terms ) && ! empty( $region_terms ) ) ? 
 		$trust_block_content = trim( $options['trust_block_content'] );
 	}
 	?>
+	<?php if ( $single_show_trust_block || $single_show_seller_card ) : ?>
 	<div class="cf-trust-layout">
-		<?php if ( '' !== $trust_block_content || '' !== $region_name ) : ?>
+		<?php if ( $single_show_trust_block && ( '' !== $trust_block_content || '' !== $region_name ) ) : ?>
 		<div class="cf-trust-card">
 			<?php if ( '' !== $trust_block_content ) : ?>
 			<div class="cf-trust-content"><?php echo wp_kses_post( wpautop( $trust_block_content ) ); ?></div>
@@ -177,6 +183,7 @@ $region_name = ( ! is_wp_error( $region_terms ) && ! empty( $region_terms ) ) ? 
 			<?php endif; ?>
 		</div>
 		<?php endif; ?>
+		<?php if ( $single_show_seller_card ) : ?>
 		<div class="cf-seller-card">
 			<h3><?php _e( 'Verkäuferprofil', $this->text_domain ); ?></h3>
 			<p class="cf-seller-name"><?php echo esc_html( $author_display_name ); ?></p>
@@ -190,7 +197,9 @@ $region_name = ( ! is_wp_error( $region_terms ) && ! empty( $region_terms ) ) ? 
 				<a class="button cf-card-secondary" href="<?php echo esc_url( get_author_posts_url( $author_id ) ); ?>"><?php _e( 'Alle Anzeigen ansehen', $this->text_domain ); ?></a>
 			</p>
 		</div>
+		<?php endif; ?>
 	</div>
+	<?php endif; ?>
 
 	<?php if( empty( $options['disable_contact_form'] ) ): ?>
 	<form method="post" action="#" class="contact-user-btn action-form" id="action-form">
@@ -269,6 +278,7 @@ $region_name = ( ! is_wp_error( $region_terms ) && ! empty( $region_terms ) ) ? 
 	</table>
 </div>
 
+<?php if ( $single_show_sticky_actions ) : ?>
 <div class="cf-sticky-mobile-actions">
 	<?php if ( empty( $options['disable_contact_form'] ) ) : ?>
 	<button type="button" class="button button-primary cf-cta-contact" onclick="classifieds.toggle_contact_form(); return false;"><?php _e( 'Kontakt', $this->text_domain ); ?></button>
@@ -279,6 +289,7 @@ $region_name = ( ! is_wp_error( $region_terms ) && ! empty( $region_terms ) ) ? 
 	</button>
 	<button type="button" class="button cf-cta-share" data-copy-url="<?php echo esc_url( get_permalink() ); ?>"><?php _e( 'Teilen', $this->text_domain ); ?></button>
 </div>
+<?php endif; ?>
 
 <div class="cf-lightbox" id="cf-lightbox" aria-hidden="true">
 	<button type="button" class="cf-lightbox-close" aria-label="<?php esc_attr_e( 'Schliessen', $this->text_domain ); ?>">&times;</button>

@@ -29,6 +29,15 @@ $cf_options = $cf->get_options( 'general' );
 $frontend_options = $cf->get_options( 'frontend' );
 $favorite_ids = method_exists( $cf, 'get_favorite_ids' ) ? $cf->get_favorite_ids() : array();
 
+$archive_columns = isset( $frontend_options['archive_columns'] ) ? (int) $frontend_options['archive_columns'] : 3;
+if ( ! in_array( $archive_columns, array( 2, 3, 4 ), true ) ) {
+	$archive_columns = 3;
+}
+$archive_show_filter_tools = ! isset( $frontend_options['archive_show_filter_tools'] ) || 1 === (int) $frontend_options['archive_show_filter_tools'];
+$archive_show_quickview = ! isset( $frontend_options['archive_show_quickview'] ) || 1 === (int) $frontend_options['archive_show_quickview'];
+$archive_show_favorites = ! isset( $frontend_options['archive_show_favorites'] ) || 1 === (int) $frontend_options['archive_show_favorites'];
+$archive_show_contact_cta = ! isset( $frontend_options['archive_show_contact_cta'] ) || 1 === (int) $frontend_options['archive_show_contact_cta'];
+
 $archive_intro = isset( $frontend_options['archive_intro'] ) ? trim( $frontend_options['archive_intro'] ) : '';
 
 $field_image = (empty($cf_options['field_image_def'])) ? $cf->plugin_url . 'ui-front/general/images/blank.gif' : $cf_options['field_image_def'];
@@ -118,6 +127,7 @@ $region_terms = get_terms(
 		<a class="button cf-filter-reset" href="<?php echo esc_url( get_permalink( $cf->classifieds_page_id ) ); ?>"><?php _e( 'Zurücksetzen', CF_TEXT_DOMAIN ); ?></a>
 	</div>
 
+	<?php if ( $archive_show_filter_tools ) : ?>
 	<div class="cf-filter-tools">
 		<button type="button" class="button cf-save-filter"><?php _e( 'Filter merken', CF_TEXT_DOMAIN ); ?></button>
 		<select class="cf-saved-filter-select" aria-label="<?php esc_attr_e( 'Gespeicherte Filter', CF_TEXT_DOMAIN ); ?>">
@@ -130,6 +140,7 @@ $region_terms = get_terms(
 			<?php _e( 'Zuletzt genutzte Filter automatisch laden', CF_TEXT_DOMAIN ); ?>
 		</label>
 	</div>
+	<?php endif; ?>
 </form>
 
 <?php /* Display navigation to next/previous pages when applicable */ ?>
@@ -161,7 +172,7 @@ $region_terms = get_terms(
 *
 * Without further ado, the loop:
 */  ?>
-<div class="cf-listing-grid">
+<div class="cf-listing-grid cf-grid-cols-<?php echo esc_attr( $archive_columns ); ?>">
 <?php while ( have_posts() ) : the_post(); ?>
 
 <?php
@@ -228,12 +239,18 @@ $is_favorite   = in_array( get_the_ID(), $favorite_ids, true );
 			<div class="cf-card-footer">
 				<div class="cf-card-meta-row"></div>
 				<div class="cf-card-actions">
+					<?php if ( $archive_show_favorites ) : ?>
 					<button type="button" class="button cf-card-secondary cf-favorite-toggle <?php echo $is_favorite ? 'is-active' : ''; ?>" data-post-id="<?php the_ID(); ?>">
 						<span class="cf-favorite-label-default"><?php _e( 'Merken', CF_TEXT_DOMAIN ); ?></span>
 						<span class="cf-favorite-label-active"><?php _e( 'Gemerkt', CF_TEXT_DOMAIN ); ?></span>
 					</button>
+					<?php endif; ?>
+					<?php if ( $archive_show_quickview ) : ?>
 								<a class="button cf-card-secondary cf-quickview-trigger" href="<?php the_permalink(); ?>" data-post-id="<?php the_ID(); ?>"><?php _e( 'Schnellansicht', CF_TEXT_DOMAIN ); ?></a>
+					<?php endif; ?>
+					<?php if ( $archive_show_contact_cta ) : ?>
 					<a class="button cf-card-secondary cf-card-contact" href="<?php echo esc_url( add_query_arg( 'cf_contact', '1', get_permalink() ) . '#confirm-form' ); ?>"><?php _e( 'Kontakt', CF_TEXT_DOMAIN ); ?></a>
+					<?php endif; ?>
 					<a class="button cf-card-cta" href="<?php the_permalink(); ?>"><?php _e( 'Mehr Details', CF_TEXT_DOMAIN ); ?></a>
 				</div>
 			</div>

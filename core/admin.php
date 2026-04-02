@@ -318,6 +318,18 @@ class Classifieds_Core_Admin extends Classifieds_Core {
 							$params['trust_block_content'] = wp_kses_post( $params['trust_block_content'] );
 						}
 						$params['archive_auto_restore'] = empty( $params['archive_auto_restore'] ) ? 0 : 1;
+						$params['archive_show_filter_tools'] = empty( $params['archive_show_filter_tools'] ) ? 0 : 1;
+						$params['archive_show_quickview'] = empty( $params['archive_show_quickview'] ) ? 0 : 1;
+						$params['archive_show_favorites'] = empty( $params['archive_show_favorites'] ) ? 0 : 1;
+						$params['archive_show_contact_cta'] = empty( $params['archive_show_contact_cta'] ) ? 0 : 1;
+						$params['single_show_gallery'] = empty( $params['single_show_gallery'] ) ? 0 : 1;
+						$params['single_show_trust_block'] = empty( $params['single_show_trust_block'] ) ? 0 : 1;
+						$params['single_show_seller_card'] = empty( $params['single_show_seller_card'] ) ? 0 : 1;
+						$params['single_show_sticky_actions'] = empty( $params['single_show_sticky_actions'] ) ? 0 : 1;
+						$params['user_show_favorites_tab'] = empty( $params['user_show_favorites_tab'] ) ? 0 : 1;
+
+						$archive_columns = isset( $params['archive_columns'] ) ? (int) $params['archive_columns'] : 3;
+						$params['archive_columns'] = in_array( $archive_columns, array( 2, 3, 4 ), true ) ? $archive_columns : 3;
 					}
 					unset($params['new_role'],
 					$params['add_role'],

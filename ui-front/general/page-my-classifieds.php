@@ -18,6 +18,7 @@ $paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
 $options_general = $this->get_options( 'general' );
 $options_frontend = $this->get_options( 'frontend' );
 $user_intro = isset( $options_frontend['user_intro'] ) ? trim( $options_frontend['user_intro'] ) : '';
+$user_show_favorites_tab = ! isset( $options_frontend['user_show_favorites_tab'] ) || 1 === (int) $options_frontend['user_show_favorites_tab'];
 
 $favorite_ids = method_exists( $this, 'get_favorite_ids' ) ? $this->get_favorite_ids() : array();
 
@@ -28,7 +29,7 @@ $query_args = array(
 //'posts_per_page' => 1000,
 );
 
-if ( isset( $_GET['favorites'] ) ) {
+if ( $user_show_favorites_tab && isset( $_GET['favorites'] ) ) {
 	$sub = 'favorites';
 	$query_args['post_status'] = 'publish';
 	unset( $query_args['author'] );
@@ -81,7 +82,9 @@ echo do_shortcode('[cf_checkout_btn text="' . __('Kleinanzeigen kaufen', $this->
 
 <ul class="cf_tabs">
 	<li class="<?php if ( $sub == 'active') echo 'cf_active'; ?>"><a href="<?php echo $cf_path . '/?active'; ?>"><?php _e( 'Aktive Anzeigen', $this->text_domain ); ?></a></li>
+	<?php if ( $user_show_favorites_tab ) : ?>
 	<li class="<?php if (  $sub == 'favorites') echo 'cf_active'; ?>"><a href="<?php echo $cf_path . '/?favorites'; ?>"><?php _e( 'Gemerkte Anzeigen', $this->text_domain ); ?></a></li>
+	<?php endif; ?>
 	<li class="<?php if (  $sub == 'saved') echo 'cf_active'; ?>"><a href="<?php echo $cf_path . '/?saved'; ?>"><?php _e( 'Gespeicherte Anzeigen', $this->text_domain ); ?></a></li>
 	<li class="<?php if (  $sub == 'ended') echo 'cf_active'; ?>"><a href="<?php echo $cf_path . '/?ended'; ?>"><?php _e( 'Beendete Anzeigen', $this->text_domain ); ?></a></li>
 </ul>

@@ -18,6 +18,7 @@ global $bp, $wp_query, $paged;
 $options = $this->get_options( 'general' );
 $options_frontend = $this->get_options( 'frontend' );
 $user_intro = isset( $options_frontend['user_intro'] ) ? trim( $options_frontend['user_intro'] ) : '';
+$user_show_favorites_tab = ! isset( $options_frontend['user_show_favorites_tab'] ) || 1 === (int) $options_frontend['user_show_favorites_tab'];
 $favorite_ids = method_exists( $this, 'get_favorite_ids' ) ? $this->get_favorite_ids() : array();
 
 $cf_path = $bp->displayed_user->domain . $this->classifieds_page_slug .'/' . $this->my_classifieds_page_slug;
@@ -37,7 +38,7 @@ if ( in_array( 'saved',  $bp->action_variables ) ) {
 	$query_args['post_status'] = array('draft', 'pending');
 	$sub = 'saved';
 }
-elseif ( in_array( 'favorites',  $bp->action_variables ) ) {
+elseif ( $user_show_favorites_tab && in_array( 'favorites',  $bp->action_variables ) ) {
 	$query_args['post_status'] = 'publish';
 	unset( $query_args['author'] );
 	$query_args['post__in'] = ! empty( $favorite_ids ) ? array_map( 'absint', $favorite_ids ) : array( 0 );
@@ -80,7 +81,9 @@ query_posts($query_args);
 
 	<ul class="cf_tabs">
 		<li class="<?php if ( in_array( 'active', $bp->action_variables ) || empty( $bp->action_variables ) ) echo 'cf_active current'; ?>"><a href="<?php echo $cf_path . '/active/'; ?>"><?php _e( 'Aktive Anzeigen', $this->text_domain ); ?></a></li>
+		<?php if ( $user_show_favorites_tab ) : ?>
 		<li class="<?php if ( in_array( 'favorites',  $bp->action_variables ) ) echo 'cf_active current'; ?>"><a href="<?php echo $cf_path . '/favorites/'; ?>"><?php _e( 'Gemerkte Anzeigen', $this->text_domain ); ?></a></li>
+		<?php endif; ?>
 		<li class="<?php if ( in_array( 'saved',  $bp->action_variables ) ) echo 'cf_active current'; ?>"><a href="<?php echo $cf_path . '/saved/'; ?>"><?php _e( 'Gespeicherte Anzeigen', $this->text_domain ); ?></a></li>
 		<li class="<?php if ( in_array( 'ended',  $bp->action_variables ) ) echo 'cf_active current'; ?>"><a href="<?php echo $cf_path . '/ended/'; ?>"><?php _e( 'Beendete Anzeigen', $this->text_domain ); ?></a></li>
 	</ul>
