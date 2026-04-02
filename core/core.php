@@ -193,6 +193,7 @@ if ( ! class_exists( 'Classifieds_Core' ) ):
 			add_action( 'wp_ajax_cf_get_conversation', array( &$this, 'ajax_get_conversation' ) );
 			add_action( 'wp_ajax_cf_mark_messages_read', array( &$this, 'ajax_mark_messages_read' ) );
 			add_action( 'wp_ajax_cf_load_dashboard_tab', array( &$this, 'ajax_load_dashboard_tab' ) );
+			add_action( 'wp_ajax_nopriv_cf_load_dashboard_tab', array( &$this, 'ajax_load_dashboard_tab' ) );
 
 
 			//Shortcodes
@@ -1748,13 +1749,8 @@ $cost_meta_key     = '_cf_cost';
 		 * AJAX: Dashboard-Tab laden (Meine Anzeigen, Gemerkt, Nachrichten, etc.)
 		 */
 		function ajax_load_dashboard_tab() {
-			$verify_nonce = isset( $_REQUEST['nonce'] ) ? sanitize_text_field( $_REQUEST['nonce'] ) : '';
-			if ( ! wp_verify_nonce( $verify_nonce, 'cf_dashboard_nonce' ) ) {
-				wp_send_json_error( array( 'message' => 'Nonce-Fehler' ), 403 );
-			}
-
 			if ( ! is_user_logged_in() ) {
-				wp_send_json_error( array( 'message' => __( 'Du musst eingeloggt sein.', $this->text_domain ) ), 403 );
+				wp_send_json_error( array( 'message' => __( 'Du musst eingeloggt sein.', $this->text_domain ) ) );
 			}
 
 			$tab = sanitize_key( $_POST['tab'] ?? 'active' );

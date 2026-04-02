@@ -19,7 +19,7 @@ $active_tab = isset( $_GET['messages'] ) ? 'messages' : ( isset( $_GET['favorite
 
 remove_filter( 'the_content', array( &$this, 'my_classifieds_content' ) );
 
-wp_enqueue_script( 'cf-frontend', $this->plugin_url . 'ui-front/js/ui-front.js', array( 'jquery' ), false, true );
+wp_enqueue_script( 'cf-frontend', $this->plugin_url . 'ui-front/js/ui-front.js', array( 'jquery' ), filemtime( $this->plugin_dir . 'ui-front/js/ui-front.js' ), true );
 wp_localize_script( 'cf-frontend', 'cfFrontend', array(
 	'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
 	'nonce'            => wp_create_nonce( 'cf_send_message' ),
@@ -32,6 +32,71 @@ wp_localize_script( 'cf-frontend', 'cfFrontend', array(
 		'noMessages' => __( 'Noch keine Nachrichten.', $this->text_domain ),
 	),
 ) );
+
+wp_add_inline_script( 'cf-frontend', "(function($){
+	function getActiveTabFromUrl(){
+		var params = new URLSearchParams(window.location.search || '');
+		if (params.get('tab')) return params.get('tab');
+		if (params.has('messages')) return 'messages';
+		if (params.has('favorites')) return 'favorites';
+		if (params.has('saved')) return 'saved';
+		if (params.has('ended')) return 'ended';
+		return 'active';
+	}
+
+	function loadDashboardTab(tabName){
+		var cfg = window.cfFrontend || {};
+		if (!cfg.ajaxUrl) return;
+
+		var nonce = cfg.dashboardNonce || cfg.nonce || '';
+		var $content = $('#cf-tab-content');
+		var $loader = $('.cf-loader');
+
+		if (!$content.length) return;
+
+		$loader.show();
+		$content.html('');
+
+		$.ajax({
+			url: cfg.ajaxUrl,
+			method: 'POST',
+			dataType: 'json',
+			data: {
+				action: 'cf_load_dashboard_tab',
+				tab: tabName,
+				nonce: nonce
+			}
+		}).done(function(res){
+			$loader.hide();
+			if (res && res.success) {
+				var html = (res.data && typeof res.data === 'object' && typeof res.data.html !== 'undefined') ? res.data.html : res.data;
+				$content.html(html || '');
+				$('.cf-nav-item').removeClass('is-active');
+				$('.cf-nav-item[data-tab=\"' + tabName + '\"]').addClass('is-active');
+				window.history.pushState({tab: tabName}, '', '?tab=' + tabName);
+			} else {
+				var msg = (res && res.data && res.data.message) ? res.data.message : 'Fehler beim Laden des Tabs.';
+				$content.html('<div class=\"cf-notice cf-notice-error\">' + msg + '</div>');
+			}
+		}).fail(function(xhr){
+			$loader.hide();
+			var msg = (xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) ? xhr.responseJSON.data.message : 'Fehler beim Laden des Tabs.';
+			$content.html('<div class=\"cf-notice cf-notice-error\">' + msg + '</div>');
+		});
+	}
+
+	$(document).on('click', '.cf-nav-item[data-tab]', function(e){
+		e.preventDefault();
+		var tab = $(this).data('tab');
+		if (tab) loadDashboardTab(tab);
+	});
+
+	$(function(){
+		if ($('#cf-dashboard-content').length) {
+			loadDashboardTab(getActiveTabFromUrl());
+		}
+	});
+})(jQuery);", 'after' );
 ?>
 
 <div class="cf-dashboard">

@@ -673,7 +673,8 @@ js_translate.image_chosen = 'Bild ausgewaehlt';
                 // Dashboard-Tab AJAX nachladen
                 loadTab: function(tabName) {
                         var cfg = window.cfFrontend || {};
-                        if (!cfg.ajaxUrl || !cfg.dashboardNonce) return;
+					var dashboardNonce = cfg.dashboardNonce || cfg.nonce || '';
+					if (!cfg.ajaxUrl || !dashboardNonce) return;
 
                         var $content = $('#cf-tab-content');
                         var $loader = $('.cf-loader');
@@ -683,7 +684,7 @@ js_translate.image_chosen = 'Bild ausgewaehlt';
 
 						$.post(cfg.ajaxUrl, {
                                 action: 'cf_load_dashboard_tab',
-                                nonce: cfg.dashboardNonce,
+				nonce: dashboardNonce,
                                 tab: tabName
                         }, function(res) {
                                 $loader.hide();
@@ -711,7 +712,7 @@ js_translate.image_chosen = 'Bild ausgewaehlt';
 
 				if ( $('#cf-dashboard-content').length > 0 ) {
 					var urlParams = new URLSearchParams(window.location.search);
-					var activeTab = urlParams.get('tab') || 'active';
+					var activeTab = urlParams.get('tab') || (urlParams.has('messages') ? 'messages' : (urlParams.has('favorites') ? 'favorites' : (urlParams.has('saved') ? 'saved' : (urlParams.has('ended') ? 'ended' : 'active'))));
 					window.cfDashboard.loadTab(activeTab);
 
 					$(document).on('click', '.cf-nav-item', function(e) {
