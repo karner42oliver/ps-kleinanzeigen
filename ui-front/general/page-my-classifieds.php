@@ -109,6 +109,95 @@ wp_add_inline_script( 'cf-frontend', "(function(\$){
 <div class="cf-user-intro"><?php echo wp_kses_post( wpautop( $user_intro ) ); ?></div>
 <?php endif; ?>
 
+<?php
+// Membership/Tarif-Status Box (oben auf der Seite, optional basierend auf Einstellungen)
+$options_frontend = $this->get_options( 'frontend' );
+$show_tariff_box = ! empty( $options_frontend['tariff_status_enabled'] );
+
+if ( $show_tariff_box ) {
+	$membership_name = '';
+	$expiry_formatted = '';
+	$is_member = false;
+
+	// Get active membership
+	if ( class_exists( 'MS_Model_Member' ) ) {
+		$member = MS_Model_Member::load_current();
+		if ( $member && method_exists( $member, 'get_memberships' ) ) {
+			$memberships = $member->get_memberships( array( 'status' => 'active' ) );
+			if ( ! empty( $memberships ) ) {
+				$is_member = true;
+				$active_ms = array_shift( $memberships );
+				if ( $active_ms ) {
+					$membership_name = $active_ms->name;
+					if ( method_exists( $active_ms, 'get_expiration_date' ) ) {
+						$expiry_date = $active_ms->get_expiration_date();
+						if ( $expiry_date && $expiry_date > 0 ) {
+							$expiry_formatted = date_i18n( get_option( 'date_format' ), $expiry_date );
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Build inline styles from settings
+	$bg_color = isset( $options_frontend['tariff_status_bg_color'] ) ? $options_frontend['tariff_status_bg_color'] : '#f0f4f8';
+	$border_color = isset( $options_frontend['tariff_status_border_color'] ) ? $options_frontend['tariff_status_border_color'] : '#2271b1';
+	$text_color = isset( $options_frontend['tariff_status_text_color'] ) ? $options_frontend['tariff_status_text_color'] : '#333333';
+	$heading_color = isset( $options_frontend['tariff_status_heading_color'] ) ? $options_frontend['tariff_status_heading_color'] : '#1a1a1a';
+	$warning_color = isset( $options_frontend['tariff_status_warning_color'] ) ? $options_frontend['tariff_status_warning_color'] : '#d32f2f';
+	$text_size = isset( $options_frontend['tariff_status_text_size'] ) ? $options_frontend['tariff_status_text_size'] : 'normal';
+	$padding = isset( $options_frontend['tariff_status_padding'] ) ? absint( $options_frontend['tariff_status_padding'] ) : 15;
+
+	$text_sizes = array(
+		'small' => '12px',
+		'normal' => '14px',
+		'medium' => '16px',
+		'large' => '18px',
+	);
+	$font_size = isset( $text_sizes[ $text_size ] ) ? $text_sizes[ $text_size ] : '14px';
+
+	$box_style = "background-color: {$bg_color}; border-left: 4px solid {$border_color}; color: {$text_color}; padding: {$padding}px; border-radius: 4px; margin-bottom: 20px; font-size: {$font_size};";
+	$heading_style = "color: {$heading_color}; margin: 0 0 8px 0;";
+	$warning_style = "color: {$warning_color}; font-weight: bold;";
+
+	if ( $is_member || $this->use_credits ) :
+		?>
+<div class="cf-tariff-status-box" style="<?php echo esc_attr( $box_style ); ?>">
+	<?php if ( $is_member ) : ?>
+		<div class="cf-tariff-section" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.1);">
+			<strong style="<?php echo esc_attr( $heading_style ); ?>">🎫 <?php _e( 'Aktueller Tarif', $this->text_domain ); ?></strong>
+			<div style="margin-top: 5px;">
+				<span><?php echo esc_html( $membership_name ); ?></span>
+				<?php if ( $expiry_formatted ) : ?>
+					<div style="margin-top: 4px; opacity: 0.9;">
+						<?php printf( __( 'Gültig bis: %s', $this->text_domain ), $expiry_formatted ); ?>
+					</div>
+				<?php endif; ?>
+			</div>
+		</div>
+	<?php endif; ?>
+	
+	<?php if ( $this->use_credits ) : ?>
+		<div class="cf-tariff-section">
+			<strong style="<?php echo esc_attr( $heading_style ); ?>">💳 <?php _e( 'Credits verfügbar', $this->text_domain ); ?></strong>
+			<div style="margin-top: 5px;">
+				<span><?php echo esc_html( $this->transactions->credits ); ?> Credits</span>
+				<?php 
+					$credit_warning = $this->transactions->credits <= 5;
+					if ( $credit_warning ) {
+						echo '<div style="' . esc_attr( $warning_style ) . '; margin-top: 4px;">' . __( '⚠️ Credits werden knapp!', $this->text_domain ) . '</div>';
+					}
+				?>
+			</div>
+		</div>
+	<?php endif; ?>
+</div>
+		<?php
+	endif;
+}
+?>
+
 <aside class="cf-dashboard-sidebar">
 <div class="cf-dashboard-user">
 <?php echo get_avatar( $current_user->ID, 64, '', '', array( 'class' => 'cf-avatar' ) ); ?>

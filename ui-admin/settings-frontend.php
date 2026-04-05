@@ -270,17 +270,81 @@ $user_allow_reserve_toggle = isset( $options['user_allow_reserve_toggle'] ) ? (i
 							</label>
 						</td>
 					</tr>
-				</table>
-			</div>
+				<tr>
+					<th><label for="tariff_status_enabled"><?php _e( 'Tariff-Status-Box anzeigen', $this->text_domain ); ?></label></th>
+					<td>
+						<input type="hidden" name="tariff_status_enabled" value="0" />
+						<label>
+							<input type="checkbox" id="tariff_status_enabled" name="tariff_status_enabled" value="1" <?php checked( isset( $options['tariff_status_enabled'] ) ? $options['tariff_status_enabled'] : 0 ); ?> />
+							<?php _e( 'Zeige Tariff/Membership-Info am Anfang der Meine-Anzeigen-Seite.', $this->text_domain ); ?>
+						</label>
+						<p class="description"><?php _e( 'Display current plan, expiry date and credit balance at the top of the user dashboard.', $this->text_domain ); ?></p>
+					</td>
+				</tr>
+			</table>
 		</div>
 
-		<p class="submit">
-			<?php wp_nonce_field( 'verify' ); ?>
-			<input type="hidden" name="key" value="frontend" />
-			<input type="submit" class="button-primary" name="save" value="<?php _e( 'Aenderungen speichern', $this->text_domain ); ?>" />
-		</p>
-	</form>
-
+		<div class="postbox" id="tariff_status_styling" style="<?php echo ( ! isset( $options['tariff_status_enabled'] ) || ! $options['tariff_status_enabled'] ) ? 'display:none;' : ''; ?>">
+			<h3 class="hndle"><span><?php _e( 'Tariff-Status-Box Styling', $this->text_domain ); ?></span></h3>
+			<div class="inside">
+				<p><?php _e( 'Passe das Aussehen der Tariff-Status-Box an.', $this->text_domain ); ?></p>
+				<table class="form-table">
+					<tr>
+						<th><label for="tariff_status_bg_color"><?php _e( 'Hintergrundfarbe', $this->text_domain ); ?></label></th>
+						<td>
+							<input type="color" id="tariff_status_bg_color" name="tariff_status_bg_color" value="<?php echo isset( $options['tariff_status_bg_color'] ) ? esc_attr( $options['tariff_status_bg_color'] ) : '#f0f4f8'; ?>" />
+							<span class="description"><?php _e( 'Wähle die Hintergrundfarbe der Box.', $this->text_domain ); ?></span>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="tariff_status_border_color"><?php _e( 'Rahmen/Border-Farbe', $this->text_domain ); ?></label></th>
+						<td>
+							<input type="color" id="tariff_status_border_color" name="tariff_status_border_color" value="<?php echo isset( $options['tariff_status_border_color'] ) ? esc_attr( $options['tariff_status_border_color'] ) : '#2271b1'; ?>" />
+							<span class="description"><?php _e( 'Farbe für den linken Rahmen der Box.', $this->text_domain ); ?></span>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="tariff_status_text_color"><?php _e( 'Textfarbe (allgemein)', $this->text_domain ); ?></label></th>
+						<td>
+							<input type="color" id="tariff_status_text_color" name="tariff_status_text_color" value="<?php echo isset( $options['tariff_status_text_color'] ) ? esc_attr( $options['tariff_status_text_color'] ) : '#333333'; ?>" />
+							<span class="description"><?php _e( 'Haupttextfarbe.', $this->text_domain ); ?></span>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="tariff_status_heading_color"><?php _e( 'Farbe Überschrift', $this->text_domain ); ?></label></th>
+						<td>
+							<input type="color" id="tariff_status_heading_color" name="tariff_status_heading_color" value="<?php echo isset( $options['tariff_status_heading_color'] ) ? esc_attr( $options['tariff_status_heading_color'] ) : '#1a1a1a'; ?>" />
+							<span class="description"><?php _e( 'Farbe für "Aktueller Tarif", "Credits verfügbar" etc.', $this->text_domain ); ?></span>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="tariff_status_warning_color"><?php _e( 'Farbe Warnung', $this->text_domain ); ?></label></th>
+						<td>
+							<input type="color" id="tariff_status_warning_color" name="tariff_status_warning_color" value="<?php echo isset( $options['tariff_status_warning_color'] ) ? esc_attr( $options['tariff_status_warning_color'] ) : '#d32f2f'; ?>" />
+							<span class="description"><?php _e( 'Farbe für Warnungen (z.B. "Credits werden knapp").', $this->text_domain ); ?></span>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="tariff_status_text_size"><?php _e( 'Schriftgröße', $this->text_domain ); ?></label></th>
+						<td>
+							<select id="tariff_status_text_size" name="tariff_status_text_size">
+								<option value="small" <?php selected( isset( $options['tariff_status_text_size'] ) ? $options['tariff_status_text_size'] : 'normal', 'small' ); ?>><?php _e( 'Klein (12px)', $this->text_domain ); ?></option>
+								<option value="normal" <?php selected( isset( $options['tariff_status_text_size'] ) ? $options['tariff_status_text_size'] : 'normal', 'normal' ); ?>><?php _e( 'Normal (14px)', $this->text_domain ); ?></option>
+								<option value="medium" <?php selected( isset( $options['tariff_status_text_size'] ) ? $options['tariff_status_text_size'] : 'normal', 'medium' ); ?>><?php _e( 'Mittel (16px)', $this->text_domain ); ?></option>
+								<option value="large" <?php selected( isset( $options['tariff_status_text_size'] ) ? $options['tariff_status_text_size'] : 'normal', 'large' ); ?>><?php _e( 'Groß (18px)', $this->text_domain ); ?></option>
+							</select>
+							<span class="description"><?php _e( 'Standardwert: Normal', $this->text_domain ); ?></span>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="tariff_status_padding"><?php _e( 'Innenabstand (Padding)', $this->text_domain ); ?></label></th>
+						<td>
+							<input type="number" min="5" max="50" id="tariff_status_padding" name="tariff_status_padding" value="<?php echo isset( $options['tariff_status_padding'] ) ? absint( $options['tariff_status_padding'] ) : '15'; ?>" /> px
+							<span class="description"><?php _e( 'Abstand zwischen Inhalt und Kanten.', $this->text_domain ); ?></span>
+						</td>
+					</tr>
+				</table>
+			</div>
 	<script>
 	(function() {
 		const presetSelect = document.getElementById('cf_frontend_preset');
@@ -363,6 +427,20 @@ $user_allow_reserve_toggle = isset( $options['user_allow_reserve_toggle'] ) ? (i
 				setByName(key, presets[selected][key]);
 			});
 		});
+	})();
+	</script>
+
+	<script>
+	(function() {
+		// Toggle styling section based on tariff_status_enabled checkbox
+		const enabledCheckbox = document.getElementById('tariff_status_enabled');
+		const stylingBox = document.getElementById('tariff_status_styling');
+
+		if (enabledCheckbox && stylingBox) {
+			enabledCheckbox.addEventListener('change', function() {
+				stylingBox.style.display = this.checked ? '' : 'none';
+			});
+		}
 	})();
 	</script>
 

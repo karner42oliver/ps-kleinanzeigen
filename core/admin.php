@@ -361,7 +361,15 @@ class Classifieds_Core_Admin extends Classifieds_Core {
 						$params['single_show_reserved_badge'] = empty( $params['single_show_reserved_badge'] ) ? 0 : 1;
 						$params['user_show_favorites_tab'] = empty( $params['user_show_favorites_tab'] ) ? 0 : 1;
 						$params['user_allow_reserve_toggle'] = empty( $params['user_allow_reserve_toggle'] ) ? 0 : 1;
-
+					// Tariff status box settings
+					$params['tariff_status_enabled'] = empty( $params['tariff_status_enabled'] ) ? 0 : 1;
+					$params['tariff_status_bg_color'] = isset( $params['tariff_status_bg_color'] ) && preg_match( '/^#[0-9a-f]{6}$/i', $params['tariff_status_bg_color'] ) ? $params['tariff_status_bg_color'] : '#f0f4f8';
+					$params['tariff_status_border_color'] = isset( $params['tariff_status_border_color'] ) && preg_match( '/^#[0-9a-f]{6}$/i', $params['tariff_status_border_color'] ) ? $params['tariff_status_border_color'] : '#2271b1';
+					$params['tariff_status_text_color'] = isset( $params['tariff_status_text_color'] ) && preg_match( '/^#[0-9a-f]{6}$/i', $params['tariff_status_text_color'] ) ? $params['tariff_status_text_color'] : '#333333';
+					$params['tariff_status_heading_color'] = isset( $params['tariff_status_heading_color'] ) && preg_match( '/^#[0-9a-f]{6}$/i', $params['tariff_status_heading_color'] ) ? $params['tariff_status_heading_color'] : '#1a1a1a';
+					$params['tariff_status_warning_color'] = isset( $params['tariff_status_warning_color'] ) && preg_match( '/^#[0-9a-f]{6}$/i', $params['tariff_status_warning_color'] ) ? $params['tariff_status_warning_color'] : '#d32f2f';
+					$params['tariff_status_text_size'] = isset( $params['tariff_status_text_size'] ) && in_array( $params['tariff_status_text_size'], array( 'small', 'normal', 'medium', 'large' ), true ) ? $params['tariff_status_text_size'] : 'normal';
+					$params['tariff_status_padding'] = isset( $params['tariff_status_padding'] ) ? absint( $params['tariff_status_padding'] ) : 15;
 						$archive_columns = isset( $params['archive_columns'] ) ? (int) $params['archive_columns'] : 3;
 						$params['archive_columns'] = in_array( $archive_columns, array( 2, 3, 4 ), true ) ? $archive_columns : 3;
 					}
