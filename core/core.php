@@ -1602,8 +1602,14 @@ $cost_meta_key     = '_cf_cost';
 						$to        = $user_info->user_email;
 						$subject   = $tm_subject;
 						$message   = $body;
+						$sender_name = sanitize_text_field( wp_unslash( $_POST['name'] ) );
+						$sender_email = sanitize_email( wp_unslash( $_POST['email'] ) );
+
+						if ( empty( $sender_email ) ) {
+							return;
+						}
 						$headers[] = "MIME-Version: 1.0";
-						$headers[] = "From: " . $_POST['name'] . " <{$_POST['email']}>";
+						$headers[] = "From: " . $sender_name . " <{$sender_email}>";
 						$headers[] = "Content-Type: text/html; charset=\"" . get_option( 'blog_charset' ) . '"';
 
 						if ( $options['cc_admin'] == '1' ) {
@@ -1611,7 +1617,7 @@ $cost_meta_key     = '_cf_cost';
 						}
 
 						if ( $options['cc_sender'] == '1' ) {
-							$headers[] = "Cc: " . $_POST['name'] . " <{$_POST['email']}>";
+							$headers[] = "Cc: " . $sender_name . " <{$sender_email}>";
 						}
 
 						$sent = ( wp_mail( $to, $subject, $message, $headers ) ) ? '1' : '0';
@@ -1824,6 +1830,8 @@ $cost_meta_key     = '_cf_cost';
 			if ( ! is_user_logged_in() ) {
 				wp_send_json_error( array( 'message' => __( 'Du musst eingeloggt sein.', $this->text_domain ) ) );
 			}
+
+			check_ajax_referer( 'cf_frontend_actions', 'nonce' );
 
 			$tab = sanitize_key( $_POST['tab'] ?? 'active' );
 			$paged = absint( $_POST['paged'] ?? 1 );

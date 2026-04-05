@@ -6,6 +6,8 @@
 if ( !class_exists('Classifieds_Core_Data') ):
 class Classifieds_Core_Data {
 
+	const INIT_OPTION = 'cf_data_initialized';
+
 	/**
 	* Constructor.
 	*
@@ -13,10 +15,32 @@ class Classifieds_Core_Data {
 	**/
 
 	function __construct() {
-		add_action( 'init', array( &$this, 'load_data' ) );
-		add_action( 'init', array( &$this, 'load_payment_data' ) );
-		add_action( 'init', array( &$this, 'load_mu_plugins' ) );
+		add_action( 'init', array( &$this, 'maybe_initialize' ), 1 );
 		add_action( 'init', array( &$this, 'rewrite_rules' ) );
+	}
+
+	/**
+	 * Run setup/migration tasks only on first run or explicit activation flag.
+	 *
+	 * @return void
+	 */
+	function maybe_initialize() {
+		$activation_requested = (bool) get_site_option( 'cf_activate', false );
+		$already_initialized = (bool) get_option( self::INIT_OPTION, false );
+
+		if ( $already_initialized && ! $activation_requested ) {
+			return;
+		}
+
+		$this->load_data();
+		$this->load_payment_data();
+		$this->load_mu_plugins();
+
+		update_option( self::INIT_OPTION, 1 );
+
+		if ( $activation_requested ) {
+			delete_site_option( 'cf_activate' );
+		}
 	}
 
 	/**
@@ -112,7 +136,6 @@ class Classifieds_Core_Data {
 		mkdir(WPMU_PLUGIN_DIR . '/logs', 0755, true);
 		endif;
 
-		copy(	CF_PLUGIN_DIR . 'mu-plugins/gateway-relay.php', WPMU_PLUGIN_DIR .'/gateway-relay.php');
 		copy(	CF_PLUGIN_DIR . 'mu-plugins/wpmu-assist.php', WPMU_PLUGIN_DIR .'/wpmu-assist.php');
 
 	}

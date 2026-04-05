@@ -91,6 +91,4 @@ register_deactivation_hook( __FILE__, function() {
 
 /* Load plugin files */
 include_once 'core/core.php';
-include_once 'core/payments.php';
-include_once 'core/paypal-express-gateway.php';
 include_once 'core/functions.php';

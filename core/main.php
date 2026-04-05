@@ -119,6 +119,9 @@ if (!class_exists('Classifieds_Core_Main')):
             } elseif (is_page($this->add_classified_page_id) || is_page($this->edit_classified_page_id)) {
 
                 if (isset($_POST['update_classified'])) {
+                    if ( empty( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'verify' ) ) {
+                        die(__('Security check failed!', $this->text_domain));
+                    }
                     // The credits required to renew the classified for the selected period
 
                     $credits_required = $this->get_credits_from_duration($_POST[$this->custom_fields['duration']]);
