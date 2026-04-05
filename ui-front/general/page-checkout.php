@@ -43,27 +43,47 @@ elseif ( !empty($error) ): ?>
 if ( $step == 'terms'): ?>
 
 <?php if ( $mp_bridge_enabled && ( ! empty( $mp_credit_packages ) || $mp_one_time_product_url ) ) : ?>
-<div class="cf-marketpress-checkout" style="margin:0 0 18px 0;padding:12px 14px;border:1px solid #c3d9f8;background:#f5f9ff;">
-	<strong><?php _e( 'Direktkauf ueber MarketPress', $this->text_domain ); ?></strong>
-	<p style="margin:8px 0 10px 0;">
-		<?php _e( 'Credits und Einmalzahlung koennen direkt im Shop gekauft werden. Die Freischaltung erfolgt danach automatisch in Kleinanzeigen.', $this->text_domain ); ?>
-	</p>
-	<div>
+<div class="cf-marketpress-checkout-banner">
+	<div class="cf-banner-content">
+		<div class="cf-banner-icon">🛒</div>
+		<div class="cf-banner-text">
+			<h3><?php _e( 'Jetzt im Shop kaufen', $this->text_domain ); ?></h3>
+			<p><?php _e( 'Credits und Einmalzahlung sind sofort verfügbar.', $this->text_domain ); ?></p>
+		</div>
+	</div>
+	<div class="cf-banner-packages">
 		<?php if ( ! empty( $mp_credit_packages ) ) : ?>
-			<?php foreach ( $mp_credit_packages as $credit_package ) : ?>
-				<?php
-				$package_product_id = empty( $credit_package['product_id'] ) ? 0 : absint( $credit_package['product_id'] );
-				$package_url = $package_product_id > 0 ? get_permalink( $package_product_id ) : '';
-				if ( empty( $package_url ) ) {
-					continue;
-				}
-				$package_label = empty( $credit_package['label'] ) ? __( 'Credits Paket', $this->text_domain ) : $credit_package['label'];
-				?>
-				<a class="button" href="<?php echo esc_url( $package_url ); ?>"><?php echo esc_html( $package_label ); ?></a>
-			<?php endforeach; ?>
+			<div class="cf-packages-grid">
+				<?php foreach ( $mp_credit_packages as $credit_package ) : ?>
+					<?php
+					$package_product_id = empty( $credit_package['product_id'] ) ? 0 : absint( $credit_package['product_id'] );
+					$package_url = $package_product_id > 0 ? get_permalink( $package_product_id ) : '';
+					if ( empty( $package_url ) ) {
+						continue;
+					}
+					$package_label = empty( $credit_package['label'] ) ? __( 'Credits Paket', $this->text_domain ) : $credit_package['label'];
+					$package_credits = empty( $credit_package['credits'] ) ? 0 : $credit_package['credits'];
+					$package_price = empty( $credit_package['price'] ) ? '0' : $credit_package['price'];
+					?>
+					<div class="cf-package-card">
+						<div class="cf-package-header">
+							<strong><?php echo esc_html( $package_label ); ?></strong>
+						</div>
+						<div class="cf-package-body">
+							<div class="cf-package-credit-count"><?php echo absint( $package_credits ); ?> Credits</div>
+							<div class="cf-package-price"><?php echo esc_html( $package_price ); ?> EUR</div>
+						</div>
+						<div class="cf-package-footer">
+							<a class="cf-btn cf-btn-package" href="<?php echo esc_url( $package_url ); ?>"><?php _e( 'Kaufen', $this->text_domain ); ?></a>
+						</div>
+					</div>
+				<?php endforeach; ?>
+			</div>
 		<?php endif; ?>
 		<?php if ( $mp_one_time_product_url ) : ?>
-			<a class="button" href="<?php echo esc_url( $mp_one_time_product_url ); ?>"><?php _e( 'Einmalzahlung kaufen', $this->text_domain ); ?></a>
+			<div class="cf-onetime-section">
+				<a class="cf-btn cf-btn-onetime" href="<?php echo esc_url( $mp_one_time_product_url ); ?>"><?php _e( 'Einmalzahlung kaufen', $this->text_domain ); ?></a>
+			</div>
 		<?php endif; ?>
 	</div>
 </div>

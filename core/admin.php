@@ -317,6 +317,9 @@ class Classifieds_Core_Admin extends Classifieds_Core {
 						$params['mp_one_time_product_id'] = isset( $params['mp_one_time_product_id'] ) ? absint( $params['mp_one_time_product_id'] ) : 0;
 						$params['mp_credit_meta_key'] = isset( $params['mp_credit_meta_key'] ) ? sanitize_key( $params['mp_credit_meta_key'] ) : 'cf_credit_amount';
 						$params['mp_credit_packages'] = $this->sanitize_credit_packages( isset( $params['mp_credit_packages'] ) ? $params['mp_credit_packages'] : array() );
+						$params['dashboard_show_credit_status'] = empty( $params['dashboard_show_credit_status'] ) ? 0 : 1;
+						$params['dashboard_credit_warning_threshold'] = isset( $params['dashboard_credit_warning_threshold'] ) ? absint( $params['dashboard_credit_warning_threshold'] ) : 5;
+						$params['featured_credit_package_id'] = isset( $params['featured_credit_package_id'] ) ? absint( $params['featured_credit_package_id'] ) : 0;
 						$params = $this->sync_marketpress_checkout_products( $params );
 						$this->sync_legacy_payment_types( $params );
 					}

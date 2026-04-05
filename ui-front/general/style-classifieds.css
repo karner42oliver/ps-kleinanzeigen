@@ -1960,10 +1960,253 @@ ul.cf_tabs li.cf_active a {
 .cf-btn-danger { background: #e74c3c !important; border-color: #c0392b !important; color: #fff !important; }
 .cf-btn-danger:hover { background: #c0392b !important; }
 
+/* Credit Status Card */
+.cf-credit-status-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.cf-credit-status-card.cf-credit-low {
+    background: linear-gradient(135deg, #f97506 0%, #e63946 100%);
+    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+}
+
+.cf-credit-status-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.cf-credit-icon {
+    font-size: 24px;
+    margin-right: 12px;
+}
+
+.cf-credit-title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.cf-credit-status-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.cf-credit-amount {
+    flex: 1;
+}
+
+.cf-credit-amount strong {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.cf-credit-warning {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.95;
+    animation: pulse 2s infinite;
+}
+
+.cf-credit-info {
+    display: block;
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.cf-featured-package {
+    flex-shrink: 0;
+}
+
+.cf-btn-featured {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #667eea !important;
+    border: none !important;
+    font-weight: 600;
+    padding: 10px 16px !important;
+    border-radius: 4px;
+    display: inline-block;
+    text-decoration: none !important;
+}
+
+.cf-btn-featured:hover {
+    background: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.cf-credit-status-card.cf-credit-low .cf-btn-featured {
+    color: #e63946 !important;
+}
+
+.cf-btn-featured.cf-btn-alert {
+    animation: pulse-button 1s infinite;
+}
+
+/* Checkout Banner */
+.cf-marketpress-checkout-banner {
+    background: #f8f9fa;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.cf-banner-content {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.cf-banner-icon {
+    font-size: 32px;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.cf-banner-text h3 {
+    margin: 0 0 6px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+}
+
+.cf-banner-text p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.cf-packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.cf-package-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.cf-package-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}
+
+.cf-package-header {
+    background: #f5f7ff;
+    padding: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    flex-grow: 1;
+}
+
+.cf-package-header strong {
+    font-size: 14px;
+    color: #333;
+}
+
+.cf-package-body {
+    padding: 12px;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.cf-package-credit-count {
+    font-size: 18px;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 4px;
+}
+
+.cf-package-price {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.cf-package-footer {
+    padding: 12px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.cf-btn-package {
+    background: #667eea !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 4px;
+    padding: 8px 12px !important;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    display: block;
+    text-decoration: none !important;
+    width: 100%;
+    transition: background 0.3s ease;
+}
+
+.cf-btn-package:hover {
+    background: #764ba2 !important;
+}
+
+.cf-onetime-section {
+    text-align: center;
+}
+
+.cf-btn-onetime {
+    background: #764ba2 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 4px;
+    padding: 12px 24px !important;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none !important;
+    display: inline-block;
+    transition: background 0.3s ease;
+}
+
+.cf-btn-onetime:hover {
+    background: #5a3885 !important;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% { opacity: 0.95; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes pulse-button {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .cf-dashboard { flex-direction: column; }
     .cf-dashboard-sidebar { width: 100%; position: static; }
     .cf-messages-layout { flex-direction: column; }
     .cf-inbox-list { width: 100%; border-right: none; border-bottom: 1px solid #e4e6ea; max-height: 300px; }
+    
+    .cf-credit-status-body {
+        flex-direction: column;
+    }
+    
+    .cf-packages-grid {
+        grid-template-columns: 1fr;
+    }
 }

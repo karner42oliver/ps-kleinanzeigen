@@ -298,6 +298,47 @@ $use_free_checked = ! empty( $options['use_free'] ) || ( is_array( $payment_type
 		</div>
 
 		<div class="postbox">
+			<h3 class='hndle'><span><?php _e( 'Frontend-Ansicht (User-Dashboard)', $this->text_domain ) ?></span></h3>
+			<div class="inside">
+				<table class="form-table">
+					<tr>
+						<th><label for="dashboard_show_credit_status"><?php _e( 'Credit-Status anzeigen', $this->text_domain ); ?></label></th>
+						<td>
+							<label>
+								<input type="checkbox" id="dashboard_show_credit_status" name="dashboard_show_credit_status" value="1" <?php checked( ! empty( $options['dashboard_show_credit_status'] ) ); ?> />
+								<?php _e( 'Zeige verfuegbare Credits in einer Card im Dashboard (Meine Anzeigen).', $this->text_domain ); ?>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="dashboard_credit_warning_threshold"><?php _e( 'Credit-Warnung ab', $this->text_domain ); ?></label></th>
+						<td>
+							<input type="number" min="0" id="dashboard_credit_warning_threshold" name="dashboard_credit_warning_threshold" value="<?php echo empty( $options['dashboard_credit_warning_threshold'] ) ? '5' : absint( $options['dashboard_credit_warning_threshold'] ); ?>" class="small-text" />
+							<span class="description"><?php _e( 'Zeige eine rote Warnung wenn User weniger als X Credits hat.', $this->text_domain ); ?></span>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="featured_credit_package_id"><?php _e( 'Featured Credit-Paket', $this->text_domain ); ?></label></th>
+						<td>
+							<select id="featured_credit_package_id" name="featured_credit_package_id" class="regular-text">
+								<option value="0"><?php _e( '- Keines -', $this->text_domain ); ?></option>
+								<?php if ( ! empty( $mp_credit_packages ) ) : ?>
+									<?php foreach ( $mp_credit_packages as $pkg ) : ?>
+										<?php $pkg_id = empty( $pkg['product_id'] ) ? 0 : absint( $pkg['product_id'] ); ?>
+										<?php if ( $pkg_id > 0 ) : ?>
+											<option value="<?php echo esc_attr( $pkg_id ); ?>" <?php selected( ! empty( $options['featured_credit_package_id'] ) && $options['featured_credit_package_id'] == $pkg_id ); ?>><?php echo esc_html( $pkg['label'] ); ?> (<?php echo esc_html( $pkg['credits'] ); ?> Credits)</option>
+										<?php endif; ?>
+									<?php endforeach; ?>
+								<?php endif; ?>
+							</select>
+							<span class="description"><?php _e( 'Dieses Paket wird hervorgehoben und prominent im User-Dashboard angezeigt.', $this->text_domain ); ?></span>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+
+		<div class="postbox">
 			<h3 class='hndle'><span><?php _e( 'AGB-Text', $this->text_domain ) ?></span></h3>
 			<div class="inside">
 

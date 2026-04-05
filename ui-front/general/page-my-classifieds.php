@@ -33,7 +33,7 @@ wp_localize_script( 'cf-frontend', 'cfFrontend', array(
 	),
 ) );
 
-wp_add_inline_script( 'cf-frontend', "(function($){
+wp_add_inline_script( 'cf-frontend', "(function(\$){
 	function getActiveTabFromUrl(){
 		var params = new URLSearchParams(window.location.search || '');
 		if (params.get('tab')) return params.get('tab');
@@ -49,15 +49,15 @@ wp_add_inline_script( 'cf-frontend', "(function($){
 		if (!cfg.ajaxUrl) return;
 
 		var nonce = cfg.dashboardNonce || cfg.nonce || '';
-		var $content = $('#cf-tab-content');
-		var $loader = $('.cf-loader');
+		var \$content = \$('#cf-tab-content');
+		var \$loader = \$('.cf-loader');
 
-		if (!$content.length) return;
+		if (!\$content.length) return;
 
-		$loader.show();
-		$content.html('');
+		\$loader.show();
+		\$content.html('');
 
-		$.ajax({
+		\$.ajax({
 			url: cfg.ajaxUrl,
 			method: 'POST',
 			dataType: 'json',
@@ -67,32 +67,32 @@ wp_add_inline_script( 'cf-frontend', "(function($){
 				nonce: nonce
 			}
 		}).done(function(res){
-			$loader.hide();
+			\$loader.hide();
 			if (res && res.success) {
 				var html = (res.data && typeof res.data === 'object' && typeof res.data.html !== 'undefined') ? res.data.html : res.data;
-				$content.html(html || '');
-				$('.cf-nav-item').removeClass('is-active');
-				$('.cf-nav-item[data-tab=\"' + tabName + '\"]').addClass('is-active');
+				\$content.html(html || '');
+				\$('.cf-nav-item').removeClass('is-active');
+				\$('.cf-nav-item[data-tab=\"' + tabName + '\"]').addClass('is-active');
 				window.history.pushState({tab: tabName}, '', '?tab=' + tabName);
 			} else {
 				var msg = (res && res.data && res.data.message) ? res.data.message : 'Fehler beim Laden des Tabs.';
-				$content.html('<div class=\"cf-notice cf-notice-error\">' + msg + '</div>');
+				\$content.html('<div class=\"cf-notice cf-notice-error\">' + msg + '</div>');
 			}
 		}).fail(function(xhr){
-			$loader.hide();
+			\$loader.hide();
 			var msg = (xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) ? xhr.responseJSON.data.message : 'Fehler beim Laden des Tabs.';
-			$content.html('<div class=\"cf-notice cf-notice-error\">' + msg + '</div>');
+			\$content.html('<div class=\"cf-notice cf-notice-error\">' + msg + '</div>');
 		});
 	}
 
-	$(document).on('click', '.cf-nav-item[data-tab]', function(e){
+	\$(document).on('click', '.cf-nav-item[data-tab]', function(e){
 		e.preventDefault();
-		var tab = $(this).data('tab');
+		var tab = \$(this).data('tab');
 		if (tab) loadDashboardTab(tab);
 	});
 
-	$(function(){
-		if ($('#cf-dashboard-content').length) {
+	\$(function(){
+		if (\$('#cf-dashboard-content').length) {
 			loadDashboardTab(getActiveTabFromUrl());
 		}
 	});
@@ -144,6 +144,62 @@ wp_add_inline_script( 'cf-frontend', "(function($){
 <?php endif; ?>
 </a>
 </nav>
+
+<?php
+// Dashboard Credit-Status Card
+$options_payments = $this->get_options( 'payments' );
+$show_credit_status = ! empty( $options_payments['dashboard_show_credit_status'] ) && $this->use_credits;
+$warning_threshold = isset( $options_payments['dashboard_credit_warning_threshold'] ) ? absint( $options_payments['dashboard_credit_warning_threshold'] ) : 5;
+$featured_pkg_id = empty( $options_payments['featured_credit_package_id'] ) ? 0 : absint( $options_payments['featured_credit_package_id'] );
+$current_credits = $this->transactions->credits;
+$is_low = $current_credits <= $warning_threshold;
+
+if ( $show_credit_status ) :
+	$mp_credit_packages = ! empty( $options_payments['mp_credit_packages'] ) && is_array( $options_payments['mp_credit_packages'] ) ? $options_payments['mp_credit_packages'] : array();
+	$featured_package = null;
+	
+	if ( $featured_pkg_id > 0 ) {
+		foreach ( $mp_credit_packages as $pkg ) {
+			if ( abs( $pkg['product_id'] ) == $featured_pkg_id ) {
+				$featured_package = $pkg;
+				break;
+			}
+		}
+	}
+	?>
+<div class="cf-credit-status-card <?php echo $is_low ? 'cf-credit-low' : ''; ?>">
+	<div class="cf-credit-status-header">
+		<span class="cf-credit-icon">💳</span>
+		<span class="cf-credit-title"><?php _e( 'Deine Kleinanzeigen-Credits', $this->text_domain ); ?></span>
+	</div>
+	<div class="cf-credit-status-body">
+		<div class="cf-credit-amount">
+			<strong><?php echo esc_html( $current_credits ); ?> Credits</strong>
+			<?php if ( $is_low ) : ?>
+				<span class="cf-credit-warning"><?php printf( __( 'Achtung: Nur noch %d Credits!', $this->text_domain ), $current_credits ); ?></span>
+			<?php else : ?>
+				<span class="cf-credit-info"><?php _e( 'verfügbar', $this->text_domain ); ?></span>
+			<?php endif; ?>
+		</div>
+		<?php if ( $featured_package && ! empty( $featured_package['product_id'] ) ) : ?>
+			<?php $feat_pkg_url = get_permalink( $featured_package['product_id'] ); ?>
+			<?php if ( $feat_pkg_url ) : ?>
+			<div class="cf-featured-package">
+				<?php if ( $is_low ) : ?>
+					<a href="<?php echo esc_url( $feat_pkg_url ); ?>" class="cf-btn cf-btn-featured cf-btn-alert">
+						<?php echo esc_html( $featured_package['label'] ); ?> (<?php echo esc_html( $featured_package['credits'] ); ?> Credits)
+					</a>
+				<?php else : ?>
+					<a href="<?php echo esc_url( $feat_pkg_url ); ?>" class="cf-btn cf-btn-featured">
+						<?php echo esc_html( $featured_package['label'] ); ?> (<?php echo esc_html( $featured_package['credits'] ); ?> Credits)
+					</a>
+				<?php endif; ?>
+			</div>
+			<?php endif; ?>
+		<?php endif; ?>
+	</div>
+</div>
+<?php endif; ?>
 
 <div class="cf-dashboard-actions">
 <?php echo do_shortcode( '[cf_add_classified_btn text="' . esc_attr__( 'Neue Anzeige', $this->text_domain ) . '" view="loggedin"]' ); ?>
