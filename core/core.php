@@ -1322,7 +1322,9 @@ $cost_meta_key     = '_cf_cost';
 		function handle_login_requests() {
 
 			if ( isset( $_POST['login_submit'] ) ) {
-				$this->login_error = $this->login( $_POST['username'], $_POST['password'] );
+				$username = sanitize_user( wp_unslash( $_POST['username'] ?? '' ) );
+				$password = wp_unslash( $_POST['password'] ?? '' );
+				$this->login_error = $this->login( $username, $password );
 			}
 		}
 

@@ -109,9 +109,10 @@ if (!class_exists('Classifieds_Core_Main')):
                     } else {
 
                         //save ad if have no credits
-                        $_POST['classified_data']['post_status'] = 'draft';
+                        $post_data = $_POST;
+                        $post_data['classified_data']['post_status'] = 'draft';
                         /* Create ad */
-                        $post_id = $this->update_ad($_POST);
+                        $post_id = $this->update_ad($post_data);
                         set_query_var('cf_post_id', $_POST['post_id']);
                         /* Set the proper step which will be loaded by "page-my-classifieds.php" */
                         set_query_var('cf_action', 'edit');

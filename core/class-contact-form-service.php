@@ -23,25 +23,25 @@ class CF_Contact_Form_Service {
 
 		$captcha = get_transient( CF_CAPTCHA . $_SERVER['REMOTE_ADDR'] );
 
-		if ( ! isset( $_POST['contact_form_send'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'send_message' ) ) {
+		if ( ! isset( $_POST['contact_form_send'] ) || ! wp_verify_nonce( $_POST['_wpnonce'] ?? '', 'send_message' ) ) {
 			return;
 		}
 
-		$_POST = stripslashes_deep( $_POST );
+		// Sanitize inputs locally — never mutate $_POST, never trust raw values in headers.
+		$name          = sanitize_text_field( wp_unslash( $_POST['name']           ?? '' ) );
+		$email         = sanitize_email(      wp_unslash( $_POST['email']          ?? '' ) );
+		$subject       = sanitize_text_field( wp_unslash( $_POST['subject']        ?? '' ) );
+		$message       = sanitize_textarea_field( wp_unslash( $_POST['message']    ?? '' ) );
+		$captcha_input = sanitize_text_field( wp_unslash( $_POST['cf_random_value'] ?? '' ) );
 
-		if ( ! isset( $_POST['name'] ) || '' == $_POST['name'] ) {
+		// Header-injection guard: reject if any required field is empty or email is invalid.
+		if ( '' === $name || '' === $subject || '' === $message ) {
 			return;
 		}
-		if ( ! isset( $_POST['email'] ) || '' == $_POST['email'] ) {
+		if ( ! is_email( $email ) ) {
 			return;
 		}
-		if ( ! isset( $_POST['subject'] ) || '' == $_POST['subject'] ) {
-			return;
-		}
-		if ( ! isset( $_POST['message'] ) || '' == $_POST['message'] ) {
-			return;
-		}
-		if ( ! $captcha || md5( strtoupper( $_POST['cf_random_value'] ) ) != $captcha ) {
+		if ( ! $captcha || md5( strtoupper( $captcha_input ) ) !== $captcha ) {
 			return;
 		}
 
@@ -49,15 +49,13 @@ class CF_Contact_Form_Service {
 		$user_info = get_userdata( $post->post_author );
 		$options   = $this->core->get_options( 'general' );
 
-		$body       = nl2br( $this->replace_email_placeholders( $options['email_content'] ) );
-		$tm_subject = $this->replace_email_placeholders( $options['email_subject'] );
+		$body       = nl2br( $this->replace_email_placeholders( $options['email_content'], $name, $email, $subject, $message ) );
+		$tm_subject = $this->replace_email_placeholders( $options['email_subject'], $name, $email, $subject, $message );
 
 		$to      = $user_info->user_email;
-		$subject = $tm_subject;
-		$message = $body;
 		$headers = array();
 		$headers[] = 'MIME-Version: 1.0';
-		$headers[] = 'From: ' . $_POST['name'] . ' <' . $_POST['email'] . '>';
+		$headers[] = 'From: ' . $name . ' <' . $email . '>';
 		$headers[] = 'Content-Type: text/html; charset="' . get_option( 'blog_charset' ) . '"';
 
 		if ( isset( $options['cc_admin'] ) && $options['cc_admin'] == '1' ) {
@@ -65,19 +63,23 @@ class CF_Contact_Form_Service {
 		}
 
 		if ( isset( $options['cc_sender'] ) && $options['cc_sender'] == '1' ) {
-			$headers[] = 'Cc: ' . $_POST['name'] . ' <' . $_POST['email'] . '>';
+			$headers[] = 'Cc: ' . $name . ' <' . $email . '>';
 		}
 
-		$sent = wp_mail( $to, $subject, $message, $headers ) ? '1' : '0';
+		$sent = wp_mail( $to, $tm_subject, $body, $headers ) ? '1' : '0';
 		wp_redirect( get_permalink( $post->ID ) . '?sent=' . $sent );
 		exit;
 	}
 
 	/**
 	 * @param string $content
+	 * @param string $name    Sanitized sender name.
+	 * @param string $email   Sanitized sender email.
+	 * @param string $subject Sanitized subject line.
+	 * @param string $message Sanitized message body.
 	 * @return string
 	 */
-	private function replace_email_placeholders( $content = '' ) {
+	private function replace_email_placeholders( $content = '', $name = '', $email = '', $subject = '', $message = '' ) {
 		global $post;
 
 		$user_info = get_userdata( $post->post_author );
@@ -96,14 +98,14 @@ class CF_Contact_Form_Service {
 						$user_info->nicename,
 						str_replace(
 							'FROM_NAME',
-							$_POST['name'],
+							$name,
 							str_replace(
 								'FROM_EMAIL',
-								$_POST['email'],
+								$email,
 								str_replace(
 									'FROM_SUBJECT',
-									$_POST['subject'],
-									str_replace( 'FROM_MESSAGE', $_POST['message'], $content )
+									$subject,
+									str_replace( 'FROM_MESSAGE', $message, $content )
 								)
 							)
 						)
