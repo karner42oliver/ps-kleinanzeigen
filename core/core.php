@@ -1868,10 +1868,12 @@ $cost_meta_key     = '_cf_cost';
 
 				ob_start();
 				if ( have_posts() ) {
+					echo '<div class="cf-dashboard-grid">';
 					while ( have_posts() ) {
 						the_post();
 						include $this->plugin_dir . 'ui-front/general/dash-item.php';
 					}
+					echo '</div>';
 				} else {
 					echo '<p>' . __( 'Noch keine Anzeigen in diesem Bereich.', $this->text_domain ) . '</p>';
 				}

@@ -21,19 +21,25 @@ $status_labels = array(
 <div class="cf-dashboard-item cf-card">
 	<div class="cf-card-image">
 		<img src="<?php echo esc_url( $image_url ); ?>" alt="<?php the_title_attribute(); ?>">
-		<?php if ( $is_reserved ) : ?>
-			<span class="cf-badge-reserved"><?php _e( 'Reserviert', 'ps-kleinanzeigen' ); ?></span>
+		<div class="cf-card-overlay-badges">
+			<?php if ( $is_reserved ) : ?>
+				<span class="cf-badge-reserved"><?php _e( 'Reserviert', 'ps-kleinanzeigen' ); ?></span>
+			<?php endif; ?>
+			<span class="cf-badge-status cf-badge-<?php echo esc_attr( $status ); ?>">
+				<?php echo isset( $status_labels[ $status ] ) ? esc_html( $status_labels[ $status ] ) : esc_html( ucfirst( $status ) ); ?>
+			</span>
+		</div>
+		<?php if ( '' !== (string) $price ) : ?>
+			<span class="cf-badge-price"><?php echo esc_html( $price ); ?> EUR</span>
 		<?php endif; ?>
-		<span class="cf-badge-status cf-badge-<?php echo esc_attr( $status ); ?>">
-			<?php echo isset( $status_labels[ $status ] ) ? esc_html( $status_labels[ $status ] ) : esc_html( ucfirst( $status ) ); ?>
-		</span>
 	</div>
 	<div class="cf-card-body">
 		<h3><?php the_title(); ?></h3>
-		<p class="cf-price"><?php echo esc_html( $price ); ?> EUR</p>
-		<p class="cf-duration"><?php echo esc_html( $duration ); ?></p>
+		<?php if ( '' !== (string) $duration ) : ?>
+			<p class="cf-dashboard-duration"><?php echo esc_html( $duration ); ?></p>
+		<?php endif; ?>
 		<?php if ( $expired ) : ?>
-			<p class="cf-expired"><?php _e( 'Abgelaufen', 'ps-kleinanzeigen' ); ?></p>
+			<p class="cf-dashboard-expired"><?php _e( 'Abgelaufen', 'ps-kleinanzeigen' ); ?></p>
 		<?php endif; ?>
 	</div>
 	<div class="cf-card-actions">

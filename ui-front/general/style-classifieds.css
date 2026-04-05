@@ -1760,6 +1760,122 @@ ul.cf_tabs li.cf_active a {
     min-width: 0;
 }
 
+.cf-dashboard-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 16px;
+}
+
+.cf-dashboard-item {
+	background: #fff;
+	border: 1px solid #e4e6ea;
+	border-radius: 10px;
+	overflow: hidden;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+	transition: transform .16s ease, box-shadow .16s ease;
+}
+
+.cf-dashboard-item:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+.cf-dashboard-item .cf-card-image {
+	position: relative;
+	aspect-ratio: 16 / 10;
+	background: #f4f6f8;
+	overflow: hidden;
+}
+
+.cf-dashboard-item .cf-card-image img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.cf-card-overlay-badges {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	right: 10px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
+	pointer-events: none;
+}
+
+.cf-badge-reserved,
+.cf-badge-status,
+.cf-badge-price {
+	display: inline-flex;
+	align-items: center;
+	border-radius: 999px;
+	padding: 4px 10px;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1;
+	backdrop-filter: blur(2px);
+}
+
+.cf-badge-reserved {
+	background: rgba(255, 160, 0, 0.92);
+	color: #2b1b00;
+}
+
+.cf-badge-status {
+	margin-left: auto;
+	color: #fff;
+}
+
+.cf-badge-publish { background: rgba(46, 125, 50, 0.92); }
+.cf-badge-draft,
+.cf-badge-pending { background: rgba(117, 117, 117, 0.92); }
+.cf-badge-private { background: rgba(198, 40, 40, 0.92); }
+
+.cf-badge-price {
+	position: absolute;
+	right: 10px;
+	bottom: 10px;
+	background: rgba(15, 23, 42, 0.9);
+	color: #fff;
+}
+
+.cf-dashboard-item .cf-card-body {
+	padding: 12px 12px 6px;
+}
+
+.cf-dashboard-item .cf-card-body h3 {
+	margin: 0 0 8px;
+	font-size: 17px;
+	line-height: 1.3;
+}
+
+.cf-dashboard-duration {
+	margin: 0;
+	font-size: 13px;
+	color: #5c6470;
+}
+
+.cf-dashboard-expired {
+	margin: 8px 0 0;
+	color: #c62828;
+	font-weight: 700;
+	font-size: 13px;
+}
+
+.cf-dashboard-item .cf-card-actions {
+	padding: 10px 12px 12px;
+	border-top: 1px solid #eef0f3;
+}
+
+.cf-dashboard-item .cf-card-actions .cf-btn {
+	flex: 1;
+	min-width: 0;
+	text-align: center;
+}
+
 .cf-dashboard-tab-header { margin-bottom: 16px; }
 .cf-dashboard-tab-header h2 { margin: 0; font-size: 20px; }
 
