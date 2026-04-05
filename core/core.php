@@ -23,6 +23,8 @@ if ( ! class_exists( 'Classifieds_Core' ) ):
 		public $quick_view_service;
 		public $reserved_status_service;
 		public $contact_form_service;
+		public $template_content_service;
+		public $shortcode_service;
 
 		/** @public plugin version */
 		public $plugin_version = CF_VERSION;
@@ -168,6 +170,10 @@ if ( ! class_exists( 'Classifieds_Core' ) ):
 			require_once $this->plugin_dir . 'core/class-contact-form-service.php';
 			$this->contact_form_service = new CF_Contact_Form_Service( $this );
 			add_action( 'template_redirect', array( $this->contact_form_service, 'handle_contact_form_requests' ) );
+			require_once $this->plugin_dir . 'core/class-template-content-service.php';
+			$this->template_content_service = new CF_Template_Content_Service( $this );
+			require_once $this->plugin_dir . 'core/class-shortcode-service.php';
+			$this->shortcode_service = new CF_Shortcode_Service( $this );
 
 			add_action( 'wp_enqueue_scripts', array( &$this, 'on_enqueue_scripts' ) );
 			add_action( 'pre_get_posts', array( &$this, 'on_pre_get_posts' ) );
@@ -213,17 +219,17 @@ if ( ! class_exists( 'Classifieds_Core' ) ):
 
 
 			//Shortcodes
-			add_shortcode( 'cf_list_categories', array( &$this, 'classifieds_categories_sc' ) );
-			add_shortcode( 'cf_classifieds_btn', array( &$this, 'classifieds_btn_sc' ) );
-			add_shortcode( 'cf_add_classified_btn', array( &$this, 'add_classified_btn_sc' ) );
-			add_shortcode( 'cf_edit_classified_btn', array( &$this, 'edit_classified_btn_sc' ) );
-			add_shortcode( 'cf_checkout_btn', array( &$this, 'checkout_btn_sc' ) );
-			add_shortcode( 'cf_my_credits_btn', array( &$this, 'my_credits_btn_sc' ) );
-			add_shortcode( 'cf_my_classifieds_btn', array( &$this, 'my_classifieds_btn_sc' ) );
-			add_shortcode( 'cf_profile_btn', array( &$this, 'profile_btn_sc' ) );
-			add_shortcode( 'cf_logout_btn', array( &$this, 'logout_btn_sc' ) );
-			add_shortcode( 'cf_signin_btn', array( &$this, 'signin_btn_sc' ) );
-			add_shortcode( 'cf_custom_fields', array( &$this, 'custom_fields_sc' ) );
+			add_shortcode( 'cf_list_categories', array( $this->shortcode_service, 'classifieds_categories_sc' ) );
+			add_shortcode( 'cf_classifieds_btn', array( $this->shortcode_service, 'classifieds_btn_sc' ) );
+			add_shortcode( 'cf_add_classified_btn', array( $this->shortcode_service, 'add_classified_btn_sc' ) );
+			add_shortcode( 'cf_edit_classified_btn', array( $this->shortcode_service, 'edit_classified_btn_sc' ) );
+			add_shortcode( 'cf_checkout_btn', array( $this->shortcode_service, 'checkout_btn_sc' ) );
+			add_shortcode( 'cf_my_credits_btn', array( $this->shortcode_service, 'my_credits_btn_sc' ) );
+			add_shortcode( 'cf_my_classifieds_btn', array( $this->shortcode_service, 'my_classifieds_btn_sc' ) );
+			add_shortcode( 'cf_profile_btn', array( $this->shortcode_service, 'profile_btn_sc' ) );
+			add_shortcode( 'cf_logout_btn', array( $this->shortcode_service, 'logout_btn_sc' ) );
+			add_shortcode( 'cf_signin_btn', array( $this->shortcode_service, 'signin_btn_sc' ) );
+			add_shortcode( 'cf_custom_fields', array( $this->shortcode_service, 'custom_fields_sc' ) );
 		}
 
 
@@ -1816,307 +1822,47 @@ $cost_meta_key     = '_cf_cost';
 		 */
 
 		function classifieds_categories_sc( $atts, $content = null ) {
-			extract( shortcode_atts( array(
-				'style' => '', //list, grid
-				'ccats' => '', //list, grid
-			), $atts ) );
-
-			if ( $style == 'grid' ) {
-				$result = PHP_EOL . '<div class="cf_list_grid">' . PHP_EOL;
-			} elseif ( $style == 'list' ) {
-				$result .= '<div class="cf_list">' . PHP_EOL;
-			} else {
-				$result .= "<ul>\n";
-			}
-
-			$result .= the_cf_categories_home( false, $atts );
-
-			$result .= "</div><!--.cf_list-->\n";
-
-			return $result;
+			return $this->shortcode_service->classifieds_categories_sc( $atts, $content );
 		}
 
 		function classifieds_btn_sc( $atts, $content = null ) {
-			extract( shortcode_atts( array(
-				'text' => __( 'Classifieds', $this->text_domain ),
-				'view' => 'both', //loggedin, loggedout, both
-			), $atts ) );
-
-			$view = strtolower( $view );
-			if ( is_user_logged_in() ) {
-				if ( $view == 'loggedout' ) {
-					return '';
-				}
-			} else if ( $view == 'loggedin' ) {
-				return '';
-			}
-
-			$content = ( empty( $content ) ) ? $text : $content;
-			ob_start();
-			?>
-			<button class="cf_button classifieds_btn" type="button"
-			        onclick="window.location.href='<?php echo get_permalink( $this->classifieds_page_id ); ?>';"><?php echo $content; ?></button>
-			<?php
-			$result = ob_get_contents();
-			ob_end_clean();
-
-			return $result;
+			return $this->shortcode_service->classifieds_btn_sc( $atts, $content );
 		}
 
 		function add_classified_btn_sc( $atts, $content = null ) {
-			extract( shortcode_atts( array(
-				'text' => __( 'Add Classified', $this->text_domain ),
-				'view' => 'both', //loggedin, loggedout, both
-			), $atts ) );
-
-
-			if ( ! current_user_can( 'create_classifieds' ) ) {
-				return '';
-			}
-			$view = strtolower( $view );
-
-			if ( is_user_logged_in() ) {
-				if ( $view == 'loggedout' ) {
-					return '';
-				}
-			} else if ( $view == 'loggedin' ) {
-				return '';
-			}
-
-			$content = ( empty( $content ) ) ? $text : $content;
-
-			ob_start();
-			?>
-			<button class="cf_button create-new-btn add_classified_btn" type="button"
-			        onclick="window.location.href='<?php echo get_permalink( $this->add_classified_page_id ); ?>';"><?php echo $content; ?></button>
-			<?php
-			$result = ob_get_contents();
-			ob_end_clean();
-
-			return $result;
+			return $this->shortcode_service->add_classified_btn_sc( $atts, $content );
 		}
 
 		function edit_classified_btn_sc( $atts, $content = null ) {
-			extract( shortcode_atts( array(
-				'text' => __( 'Edit Classified', $this->text_domain ),
-				'view' => 'both', //loggedin, loggedout, both
-				'post' => '0',
-			), $atts ) );
-
-			$view = strtolower( $view );
-			if ( is_user_logged_in() ) {
-				if ( $view == 'loggedout' ) {
-					return '';
-				}
-			} else if ( $view == 'loggedin' ) {
-				return '';
-			}
-
-			$content = ( empty( $content ) ) ? $text : $content;
-			ob_start();
-			?>
-			<button class="cf_button add_classified_btn" type="button"
-			        onclick="window.location.href='<?php echo get_permalink( $this->edit_classified_page_id ) . "?post_id=$post"; ?>';"><?php echo $content; ?></button>
-			<?php
-			$result = ob_get_contents();
-			ob_end_clean();
-
-			return $result;
+			return $this->shortcode_service->edit_classified_btn_sc( $atts, $content );
 		}
 
 		function checkout_btn_sc( $atts, $content = null ) {
-			extract( shortcode_atts( array(
-				'text' => __( 'Classifieds Checkout', $this->text_domain ),
-				'view' => 'both', //loggedin, loggedout, both
-			), $atts ) );
-
-			$view = strtolower( $view );
-			if ( is_user_logged_in() ) {
-				if ( $view == 'loggedout' ) {
-					return '';
-				}
-			} else if ( $view == 'loggedin' ) {
-				return '';
-			}
-
-			$content = ( empty( $content ) ) ? $text : $content;
-			ob_start();
-			?>
-			<button class="cf_button checkout_btn" type="button"
-			        onclick="window.location.href='<?php echo get_permalink( $this->checkout_page_id ); ?>';"><?php echo $content; ?></button>
-			<?php
-			$result = ob_get_contents();
-			ob_end_clean();
-
-			return $result;
+			return $this->shortcode_service->checkout_btn_sc( $atts, $content );
 		}
 
 		function my_credits_btn_sc( $atts, $content = null ) {
-			extract( shortcode_atts( array(
-				'text' => __( 'My Classifieds Credits', $this->text_domain ),
-				'view' => 'both', //loggedin, loggedout, both
-			), $atts ) );
-
-			if ( ! $this->use_credits || ( ! $this->use_paypal && ! $this->use_authorizenet ) ) {
-				return '';
-			} //No way to pay no button
-
-			$view = strtolower( $view );
-			if ( is_user_logged_in() ) {
-				if ( $view == 'loggedout' ) {
-					return '';
-				}
-			} else if ( $view == 'loggedin' ) {
-				return '';
-			}
-
-			$content = ( empty( $content ) ) ? $text : $content;
-			ob_start();
-			?>
-			<button class="cf_button credits_btn" type="button"
-			        onclick="window.location.href='<?php echo get_permalink( $this->my_credits_page_id ); ?>';"><?php echo $content; ?></button>
-			<?php
-			$result = ob_get_contents();
-			ob_end_clean();
-
-			return $result;
+			return $this->shortcode_service->my_credits_btn_sc( $atts, $content );
 		}
 
 		function my_classifieds_btn_sc( $atts, $content = null ) {
-			extract( shortcode_atts( array(
-				'text' => __( 'My Classifieds', $this->text_domain ),
-				'view' => 'loggedin', //loggedin, loggedout, both
-			), $atts ) );
-
-			$view = strtolower( $view );
-			if ( is_user_logged_in() ) {
-				if ( $view == 'loggedout' ) {
-					return '';
-				}
-			} else if ( $view == 'loggedin' ) {
-				return '';
-			}
-
-			$content = ( empty( $content ) ) ? $text : $content;
-			ob_start();
-			?>
-			<button class="cf_button my_classified_btn" type="button"
-			        onclick="window.location.href='<?php echo get_permalink( $this->my_classifieds_page_id ); ?>';"><?php echo $content; ?></button>
-			<?php
-			$result = ob_get_contents();
-			ob_end_clean();
-
-			return $result;
+			return $this->shortcode_service->my_classifieds_btn_sc( $atts, $content );
 		}
 
 		function profile_btn_sc( $atts, $content = null ) {
-			extract( shortcode_atts( array(
-				'text' => __( 'Go to Profile', $this->text_domain ),
-				'view' => 'both', //loggedin, loggedout, both
-			), $atts ) );
-
-			$view = strtolower( $view );
-			if ( is_user_logged_in() ) {
-				if ( $view == 'loggedout' ) {
-					return '';
-				}
-			} else if ( $view == 'loggedin' ) {
-				return '';
-			}
-
-			$content = ( empty( $content ) ) ? $text : $content;
-			ob_start();
-			?>
-			<button class="cf_button profile_btn" type="button"
-			        onclick="window.location.href='<?php echo admin_url() . 'profile.php'; ?>';"><?php echo $content; ?></button>
-			<?php
-			$result = ob_get_contents();
-			ob_end_clean();
-
-			return $result;
+			return $this->shortcode_service->profile_btn_sc( $atts, $content );
 		}
 
 		function signin_btn_sc( $atts, $content = null ) {
-			extract( shortcode_atts( array(
-				'text'     => __( 'Signin', $this->text_domain ),
-				'redirect' => '',
-				'view'     => 'loggedout', //loggedin, loggedout, both
-			), $atts ) );
-
-			$view = strtolower( $view );
-			if ( is_user_logged_in() ) {
-				if ( $view == 'loggedout' ) {
-					return '';
-				}
-			} else if ( $view == 'loggedin' ) {
-				return '';
-			}
-
-			$options = $this->get_options( 'general' );
-			if ( empty( $redirect ) ) {
-				$redirect = ( empty( $options['signin_url'] ) ) ? home_url() : $options['signin_url'];
-			}
-
-			$content = ( empty( $content ) ) ? $text : $content;
-			ob_start();
-			?>
-			<button class="cf_button signin_btn" type="button"
-			        onclick="window.location.href='<?php echo get_permalink( $this->signin_page_id ) . '?redirect_to=' . urlencode( $redirect ); ?>';"><?php echo $content; ?></button>
-			<?php
-			$result = ob_get_contents();
-			ob_end_clean();
-
-			return $result;
+			return $this->shortcode_service->signin_btn_sc( $atts, $content );
 		}
 
 		function logout_btn_sc( $atts, $content = null ) {
-			extract( shortcode_atts( array(
-				'text'     => __( 'Logout', $this->text_domain ),
-				'redirect' => '',
-				'view'     => 'loggedin', //loggedin, loggedout, both
-			), $atts ) );
-
-			$view = strtolower( $view );
-			if ( is_user_logged_in() ) {
-				if ( $view == 'loggedout' ) {
-					return '';
-				}
-			} else if ( $view == 'loggedin' ) {
-				return '';
-			}
-
-			$options = $this->get_options( 'general' );
-			if ( empty( $redirect ) ) {
-				$redirect = ( empty( $options['logout_url'] ) ) ? home_url() : $options['logout_url'];
-			}
-
-			$content = ( empty( $content ) ) ? $text : $content;
-			ob_start();
-			?>
-			<button class="cf_button logout_btn" type="button"
-			        onclick="window.location.href='<?php echo wp_logout_url( $redirect ); ?>';"><?php echo $content; ?></button>
-			<?php
-			$result = ob_get_contents();
-			ob_end_clean();
-
-			return $result;
+			return $this->shortcode_service->logout_btn_sc( $atts, $content );
 		}
 
 		function custom_fields_sc( $atts, $content = null ) {
-			extract( shortcode_atts( array(
-				'text'     => __( 'Logout', $this->text_domain ),
-				'redirect' => '',
-				'view'     => 'loggedin', //loggedin, loggedout, both
-			), $atts ) );
-
-			$options = get_option( $this->options_name );
-			$content = ( empty( $content ) ) ? $text : $content;
-			ob_start();
-			$this->display_custom_fields_values();
-			$result = ob_get_contents();
-			ob_end_clean();
-
-			return $result;
+			return $this->shortcode_service->custom_fields_sc( $atts, $content );
 		}
 
 		//close comments
@@ -2132,34 +1878,7 @@ $cost_meta_key     = '_cf_cost';
 	 * @return string Template path.
 	 **/
 	function custom_classifieds_template( $template ) {
-		if ( '' != get_query_var( 'cf_author_name' ) || isset( $_REQUEST['cf_author'] ) && '' != $_REQUEST['cf_author'] ) {
-			if ( 'loop-author' != $template ) {
-				$template = 'page-author';
-			}
-		}
-
-		$tpldir = get_stylesheet_directory();
-		$subdir = apply_filters( 'classifieds_custom_templates_dir', $tpldir . '/classifieds' );
-
-		// Simple template priority without BuddyPress/Community-specific templates
-		$candidates = array(
-			$tpldir . '/' . $template . '.php',
-			$tpldir . '/page-' . $template . '.php',
-			$subdir . '/' . $template . '.php',
-			$subdir . '/page-' . $template . '.php',
-			CF_PLUGIN_DIR . 'ui-front/general/page-' . $template . '.php',
-			CF_PLUGIN_DIR . 'ui-front/general/' . $template . '.php',
-		);
-
-		foreach ( $candidates as $template_path ) {
-			if ( file_exists( $template_path ) ) {
-				return $template_path;
-			}
-		}
-
-		// Fallback to WordPress default
-		$page_template = get_page_template();
-		return ! empty( $page_template ) ? $page_template : $template;
+		return $this->template_content_service->custom_classifieds_template( $template );
 	}
 	/**
 	 * Classifieds content.
@@ -2167,20 +1886,7 @@ $cost_meta_key     = '_cf_cost';
 		 * @return void
 		 **/
 		function classifieds_content( $content = null ) {
-			if ( ! in_the_loop() ) {
-				return $content;
-			}
-
-			ob_start();
-			remove_filter( 'the_title', array( &$this, 'page_title_output' ), 10, 2 );
-			remove_filter( 'the_content', array( &$this, 'classifieds_content' ) );
-			require( $this->custom_classifieds_template( 'classifieds' ) );
-			wp_reset_query();
-
-			$new_content = ob_get_contents();
-			ob_end_clean();
-
-			return $new_content;
+			return $this->template_content_service->classifieds_content( $content );
 		}
 
 		/**
@@ -2189,15 +1895,7 @@ $cost_meta_key     = '_cf_cost';
 		 * @return void
 		 **/
 		function update_classified_content( $content = null ) {
-			if ( ! in_the_loop() ) {
-				return $content;
-			}
-			ob_start();
-			require( $this->custom_classifieds_template( 'update-classified' ) );
-			$new_content = ob_get_contents();
-			ob_end_clean();
-
-			return $new_content;
+			return $this->template_content_service->update_classified_content( $content );
 		}
 
 		/**
@@ -2206,15 +1904,7 @@ $cost_meta_key     = '_cf_cost';
 		 * @return void
 		 **/
 		function my_classifieds_content( $content = null ) {
-			if ( ! in_the_loop() ) {
-				return $content;
-			}
-			ob_start();
-			require( $this->custom_classifieds_template( 'my-classifieds' ) );
-			$new_content = ob_get_contents();
-			ob_end_clean();
-
-			return $new_content;
+			return $this->template_content_service->my_classifieds_content( $content );
 		}
 
 		/**
@@ -2223,16 +1913,7 @@ $cost_meta_key     = '_cf_cost';
 		 * @return void
 		 **/
 		function checkout_content( $content = null ) {
-			if ( ! in_the_loop() ) {
-				return $content;
-			}
-			remove_filter( 'the_content', array( &$this, 'checkout_content' ) );
-			ob_start();
-			require( $this->custom_classifieds_template( 'checkout' ) );
-			$new_content = ob_get_contents();
-			ob_end_clean();
-
-			return $new_content;
+			return $this->template_content_service->checkout_content( $content );
 		}
 
 		/**
@@ -2241,17 +1922,7 @@ $cost_meta_key     = '_cf_cost';
 		 * @return void
 		 **/
 		function signin_content( $content = null ) {
-			if ( ! in_the_loop() ) {
-				return $content;
-			}
-			remove_filter( 'the_title', array( &$this, 'delete_post_title' ) ); //after wpautop
-			remove_filter( 'the_content', array( &$this, 'signin_content' ) );
-			ob_start();
-			require( $this->custom_classifieds_template( 'signin' ) );
-			$new_content = ob_get_contents();
-			ob_end_clean();
-
-			return $new_content;
+			return $this->template_content_service->signin_content( $content );
 		}
 
 		/**
@@ -2260,17 +1931,7 @@ $cost_meta_key     = '_cf_cost';
 		 * @return void
 		 **/
 		function my_credits_content( $content = null ) {
-			if ( ! in_the_loop() ) {
-				return $content;
-			}
-
-			remove_filter( 'the_content', array( &$this, 'my_credits_content' ) );
-			ob_start();
-			require( $this->custom_classifieds_template( 'page-my-credits' ) );
-			$new_content = ob_get_contents();
-			ob_end_clean();
-
-			return $new_content;
+			return $this->template_content_service->my_credits_content( $content );
 		}
 
 		/**
@@ -2279,16 +1940,7 @@ $cost_meta_key     = '_cf_cost';
 		 * @return void
 		 **/
 		function single_content( $content = null ) {
-			if ( ! in_the_loop() ) {
-				return $content;
-			}
-			remove_filter( 'the_content', array( &$this, 'single_content' ) );
-			ob_start();
-			require( $this->custom_classifieds_template( 'single-classifieds' ) );
-			$new_content = ob_get_contents();
-			ob_end_clean();
-
-			return $new_content;
+			return $this->template_content_service->single_content( $content );
 		}
 
 		function no_title( $content = '' ) {

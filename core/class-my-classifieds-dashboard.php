@@ -19,7 +19,7 @@ class CF_My_Classifieds_Dashboard {
 	 * @return string
 	 */
 	public function render_tab( $tab, $paged = 1 ) {
-		global $current_user, $wp_query;
+		global $current_user;
 		$current_user = wp_get_current_user();
 
 		if ( $tab === 'messages' ) {
@@ -47,13 +47,13 @@ class CF_My_Classifieds_Dashboard {
 			$query_args['post_status'] = 'publish';
 		}
 
-		query_posts( $query_args );
+		$query = new WP_Query( $query_args );
 
 		ob_start();
-		if ( have_posts() ) {
+		if ( $query->have_posts() ) {
 			echo '<div class="cf-dashboard-grid">';
-			while ( have_posts() ) {
-				the_post();
+			while ( $query->have_posts() ) {
+				$query->the_post();
 				include $this->core->plugin_dir . 'ui-front/general/dash-item.php';
 			}
 			echo '</div>';
@@ -62,7 +62,7 @@ class CF_My_Classifieds_Dashboard {
 		}
 
 		$content = (string) ob_get_clean();
-		wp_reset_query();
+		wp_reset_postdata();
 
 		return $content;
 	}
