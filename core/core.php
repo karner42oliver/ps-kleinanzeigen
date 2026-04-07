@@ -811,7 +811,7 @@ if ( ! class_exists( 'Classifieds_Core' ) ):
 				$current_user = wp_get_current_user();
 				/* Construct args for the new post */
 				$args             = array(
-					'post_title'     => 'Classifieds Checkout',
+					'post_title'     => 'Kleinanzeigen Kasse',
 					'post_name'      => 'checkout',
 					'post_status'    => 'publish',
 					//'post_author'    => $current_user->ID,
@@ -825,6 +825,13 @@ if ( ! class_exists( 'Classifieds_Core' ) ):
 				$page_id          = wp_insert_post( $args );
 				$classifieds_page = get_post( $page_id );
 				add_post_meta( $page_id, "classifieds_type", 'checkout_classified' );
+			} elseif ( 'Classifieds Checkout' === $classifieds_page->post_title ) {
+				// Safe one-time migration: only rename untouched legacy title.
+				wp_update_post( array(
+					'ID'         => $page_id,
+					'post_title' => 'Kleinanzeigen Kasse',
+				) );
+				$classifieds_page = get_post( $page_id );
 			}
 
 			$this->checkout_page_id   = $page_id; // Remember the number

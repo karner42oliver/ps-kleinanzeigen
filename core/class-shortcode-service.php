@@ -117,7 +117,7 @@ class CF_Shortcode_Service {
 	public function checkout_btn_sc( $atts, $content = null ) {
 		$atts = shortcode_atts(
 			array(
-				'text' => __( 'Classifieds Checkout', $this->core->text_domain ),
+				'text' => __( 'Zur Kasse', $this->core->text_domain ),
 				'view' => 'both',
 			),
 			(array) $atts
